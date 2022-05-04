@@ -23,6 +23,11 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Button buttonServer;
     [SerializeField] private InputField inputFieldIP;
 
+
+
+
+
+
     [Header("In-Game HUD")]
     [SerializeField] private GameObject inGameHUD;
     [SerializeField] RawImage[] heartsUI = new RawImage[3];
@@ -32,9 +37,15 @@ public class UIManager : MonoBehaviour
     #region Unity Event Functions
 
     private void Awake()
+
     {
+
         transport = (UnityTransport)networkManager.NetworkConfig.NetworkTransport;
+
     }
+
+
+
 
     private void Start()
     {
@@ -111,16 +122,24 @@ public class UIManager : MonoBehaviour
     }
 
     private void StartClient()
-    {
-        var ip = inputFieldIP.text;
-        if (!string.IsNullOrEmpty(ip))
-        {
-            transport.SetConnectionData(ip, port);
-        }
-        NetworkManager.Singleton.StartClient();
-        ActivateInGameHUD();
-    }
 
+    {
+
+        var ip = inputFieldIP.text;
+
+        if (!string.IsNullOrEmpty(ip))
+
+        {
+
+            transport.SetConnectionData(ip, port);
+
+        }
+
+        NetworkManager.Singleton.StartClient();
+
+        ActivateInGameHUD();
+
+    }
     private void StartServer()
     {
         NetworkManager.Singleton.StartServer();
