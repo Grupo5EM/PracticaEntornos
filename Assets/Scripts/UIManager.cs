@@ -23,8 +23,16 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Button buttonServer;
     [SerializeField] private InputField inputFieldIP;
 
-
-
+    //Añadimos por aquí más elementos para el lobby 
+    [Header("Menu Personalización")]
+    [SerializeField] private GameObject menuPersonalizacion;
+    [SerializeField] private InputField nombreUsuario;
+    //Botones para seleccionar persoanjes
+    [SerializeField] private Button rosa;
+    [SerializeField] private Button verde;
+    [SerializeField] private Button naranja;
+    [SerializeField] private Button azul;
+    [SerializeField] private Button Preparado;
 
 
 
@@ -70,8 +78,8 @@ public class UIManager : MonoBehaviour
         mainMenu.SetActive(false);
         inGameHUD.SetActive(true);
 
-        // for test purposes
-        UpdateLifeUI(Random.Range(1, 6));
+        //por cada unidad se le quita medio corazón, a 0 tiene 3 vidas y si lo pones a 4 solo te queda un corazón 
+        UpdateLifeUI(0);
     }
 
     public void UpdateLifeUI(int hitpoints)
