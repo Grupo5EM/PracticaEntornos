@@ -136,7 +136,7 @@ public class PlayerController : NetworkBehaviour
         anim.SetBool("isJumping", true);
         rb.velocity = new Vector2(rb.velocity.x, jumpHeight);
         _jumpsLeft--;
-        //isJumping = true;
+        
         Debug.Log("Post-Salto: " + _jumpsLeft + ", estado del jugador: " + player.State.Value + isJumping);
         
 
@@ -148,7 +148,12 @@ public class PlayerController : NetworkBehaviour
     {
         if (IsGrounded)
         {         
-            player.State.Value = PlayerState.Grounded;           
+            player.State.Value = PlayerState.Grounded;
+            
+        }
+        if (player.State.Value == PlayerState.Jumping)
+        {
+            player.State.Value = PlayerState.Jumping;
         }
 
         if ((player.State.Value != PlayerState.Hooked))
