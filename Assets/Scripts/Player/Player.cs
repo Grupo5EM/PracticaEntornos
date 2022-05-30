@@ -10,9 +10,15 @@ public class Player : NetworkBehaviour
     
     // https://docs-multiplayer.unity3d.com/netcode/current/basics/networkvariable
     public NetworkVariable<PlayerState> State;
-    public NetworkVariable<CharachterColor> characterColor;
-    public List<Transform> startPositions; 
 
+    public NetworkVariable<CharachterColor> characterColor;
+
+    public NetworkVariable<int> vida;
+    [SerializeField] private int playerID;
+    public int PlayerID => playerID;
+    [SerializeField] private UIManager uiVida;
+
+    public List<Transform> startPositions; 
 
     #endregion
 
@@ -23,14 +29,19 @@ public class Player : NetworkBehaviour
         NetworkManager.OnClientConnectedCallback += ConfigurePlayer;
 
         State = new NetworkVariable<PlayerState>();
+
         characterColor = new NetworkVariable<CharachterColor>();
+
+        vida = new NetworkVariable<int> { Value = 0 };
+        uiVida = GameObject.Find("UIManager").GetComponent<UIManager>();
+
     }
 
     private void OnEnable()
     {
         // https://docs-multiplayer.unity3d.com/netcode/current/api/Unity.Netcode.NetworkVariable-1.OnValueChangedDelegate
         State.OnValueChanged += OnPlayerStateValueChanged;
-       
+        vida.OnValueChanged += OnPlayerLifeValueChanged;
     }
 
     private void OnDisable()
@@ -39,7 +50,7 @@ public class Player : NetworkBehaviour
         
 
         State.OnValueChanged -= OnPlayerStateValueChanged;
-        
+        vida.OnValueChanged -= OnPlayerLifeValueChanged;
     }
 
     #endregion
@@ -48,18 +59,35 @@ public class Player : NetworkBehaviour
 
     void ConfigurePlayer(ulong clientID)
     {
-        if (IsLocalPlayer)
+        if (IsLocalPlayer&& playerID==0)
         {
+            print("se conecto jugador");
             ConfigurePlayer();
+            playerID = NetworkManager.Singleton.ConnectedClientsList.Count;
             ConfigureCamera();
             ConfigurePositions();
             ConfigureControls();
         }
+
+        /*if (IsServer)
+        {
+            print("se conecto jugador");
+            ConfigurePlayer();
+            playerID = NetworkManager.Singleton.ConnectedClientsList.Count;
+            ConfigureCamera();
+            ConfigureControls();
+        }*/
     }
 
     void ConfigurePlayer()
     {
+
         //UpdatePlayerStateServerRpc(PlayerState.Grounded);
+
+
+        UpdatePlayerStateServerRpc(PlayerState.Grounded);
+        vida.Value = 0;
+        uiVida.UpdateLifeUI(vida.Value);
 
     }
 
@@ -98,9 +126,16 @@ public class Player : NetworkBehaviour
     }
 
     [ServerRpc]
+
     public void UpdateCharacterColorServerRpc(CharachterColor color)
     {
         characterColor.Value = color;
+
+
+    public void UpdatePlayerLifeServerRpc(int vida)
+    {
+        this.vida.Value += vida;
+
     }
 
     #endregion
@@ -116,9 +151,15 @@ public class Player : NetworkBehaviour
         State.Value = current;
     }
 
+
     void OnCharachterColorValueChanged(CharachterColor previous, CharachterColor current)
     {
         characterColor.Value = current;
+
+    void OnPlayerLifeValueChanged(int previous, int current)
+    {
+        vida.Value = current;
+ f14df69cb6175659794575d98ff1e32ffc70c5a7
     }
 
     #endregion

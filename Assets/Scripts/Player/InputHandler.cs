@@ -22,7 +22,7 @@ public class InputHandler : NetworkBehaviour
     public UnityEvent<Vector2> OnHook;
     public UnityEvent<Vector2> OnHookRender;
     public UnityEvent OnJump;
-    public UnityEvent OnFire;
+    public UnityEvent<Vector2, int> OnFire;
 
     Vector2 CachedMoveInput { get; set; }
 
@@ -79,18 +79,22 @@ public class InputHandler : NetworkBehaviour
             // https://docs.unity3d.com/2020.3/Documentation/ScriptReference/Camera.ScreenToWorldPoint.html
             var screenPoint = Camera.main.ScreenToWorldPoint(mousePosition);
             if (hookPerformed) { Hook(screenPoint); }
-            //Como la tecla espacio ha sido presionada, se ejecuta el salto y por tanto su método
+            
+          //Como la tecla espacio ha sido presionada, se ejecuta el salto y por tanto su m?odo
+
+            print(OwnerClientId);
+
             if (jumpPerformed) { Jump(); }
-            if (_fire.WasPerformedThisFrame()) { Fire(); }
+            if (_fire.WasPerformedThisFrame()) { Fire(screenPoint, (int)OwnerClientId); }
 
             HookRender(CachedMoveInput);
-            //Termina la ejecución del Update, por lo tanto pasamos al Fixed Update. En este punto, el estado todavía sigue siendo jumping
+            //Termina la ejecuci? del Update, por lo tanto pasamos al Fixed Update. En este punto, el estado todav? sigue siendo jumping
         }
     }
 
     private void FixedUpdate()
     {
-        //Pasamos al fixed Update, que es donde calcula las físicas. Al ejecutar este método se mete dentro del UpdatePlayerPositionServer del PlayerController
+        //Pasamos al fixed Update, que es donde calcula las f?icas. Al ejecutar este m?odo se mete dentro del UpdatePlayerPositionServer del PlayerController
         MoveFixedUpdate(CachedMoveInput);
     }
 
@@ -123,9 +127,9 @@ public class InputHandler : NetworkBehaviour
         OnHookRender?.Invoke(input);
     }
 
-    void Fire()
+    void Fire(Vector2 input, int playerID)
     {
-        OnFire?.Invoke();
+        OnFire?.Invoke(input, playerID);
     }
 
     void MousePosition(Vector2 input)
