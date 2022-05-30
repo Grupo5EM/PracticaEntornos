@@ -110,6 +110,7 @@ public class PlayerController : NetworkBehaviour
         else
         {
             anim.SetBool("isGrounded", false);
+
         }
     }
 
@@ -117,27 +118,25 @@ public class PlayerController : NetworkBehaviour
     [ServerRpc]
     void PerformJumpServerRpc()
     {
-        if (isJumping == true)
-        {
-            player.State.Value = PlayerState.Jumping; 
-        }
+      
         if (player.State.Value == PlayerState.Grounded)
         {
             _jumpsLeft = maxJumps;
-
         }
+       
         else if (_jumpsLeft == 0)
         {
             return;
         }
-        Debug.Log("Pre-Salto: " + _jumpsLeft + ", estado del jugador: " + player.State.Value + isJumping);
+
+        Debug.Log("Pre-Salto: " + _jumpsLeft + ", estado del jugador: " + player.State.Value);
  
         player.State.Value = PlayerState.Jumping; 
         anim.SetBool("isJumping", true);
         rb.velocity = new Vector2(rb.velocity.x, jumpHeight);
         _jumpsLeft--;
         
-        Debug.Log("Post-Salto: " + _jumpsLeft + ", estado del jugador: " + player.State.Value + isJumping);
+        Debug.Log("Post-Salto: " + _jumpsLeft + ", estado del jugador: " + player.State.Value);
         
 
     }
@@ -158,6 +157,7 @@ public class PlayerController : NetworkBehaviour
 
         if ((player.State.Value != PlayerState.Hooked))
         {
+            
             rb.velocity = new Vector2(input.x * speed, rb.velocity.y);
         }
     }

@@ -7,7 +7,7 @@ using Unity.Netcode;
 public class Player : NetworkBehaviour
 {
     #region Variables
-
+    
     // https://docs-multiplayer.unity3d.com/netcode/current/basics/networkvariable
     public NetworkVariable<PlayerState> State;
     public List<Transform> startPositions; 
@@ -34,6 +34,8 @@ public class Player : NetworkBehaviour
     private void OnDisable()
     {
         // https://docs-multiplayer.unity3d.com/netcode/current/api/Unity.Netcode.NetworkVariable-1.OnValueChangedDelegate
+        
+
         State.OnValueChanged -= OnPlayerStateValueChanged;
         
     }

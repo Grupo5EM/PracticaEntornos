@@ -23,8 +23,18 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Button buttonServer;
     [SerializeField] private InputField inputFieldIP;
 
+    //Añadimos por aquí más elementos para el lobby 
+    [Header("Menu Personalización")]
+    [SerializeField] private GameObject menuPersonalizacion;
+    [SerializeField] private InputField nombreUsuario;
+    //Botones para seleccionar persoanjes
+    [SerializeField] private Button rosa;
+    [SerializeField] private Button verde;
+    [SerializeField] private Button naranja;
+    [SerializeField] private Button azul;
+    [SerializeField] public  Button preparado;
 
-
+    
 
 
 
@@ -52,26 +62,53 @@ public class UIManager : MonoBehaviour
         buttonHost.onClick.AddListener(() => StartHost());
         buttonClient.onClick.AddListener(() => StartClient());
         buttonServer.onClick.AddListener(() => StartServer());
+        preparado.onClick.AddListener(() => Jugar());
+
+
+        rosa.onClick.AddListener(() => SkinPersonaje());
+        verde.onClick.AddListener(() => SkinPersonaje());
+        naranja.onClick.AddListener(() => SkinPersonaje());
+        azul.onClick.AddListener(() => SkinPersonaje());
         ActivateMainMenu();
     }
 
     #endregion
 
     #region UI Related Methods
+    private void SkinPersonaje()
+    {
+        //Aquí se pasaria por paramtro el color de la skin que se quiere para modificar luego el animator
 
+    }
+    private void Jugar()
+    {
+        NetworkManager.Singleton.StartHost();
+        ActivateInGameHUD();
+        mainMenu.SetActive(false);
+        menuPersonalizacion.SetActive(false);
+        inGameHUD.SetActive(true);
+    }
     private void ActivateMainMenu()
     {
         mainMenu.SetActive(true);
+
         inGameHUD.SetActive(false);
     }
-
+    //Activamos el menu
+    private void MenuPersonalizacion()
+    {
+        
+        mainMenu.SetActive(false);
+        menuPersonalizacion.SetActive(true);
+        
+    }
     private void ActivateInGameHUD()
     {
         mainMenu.SetActive(false);
         inGameHUD.SetActive(true);
 
-        // for test purposes
-        UpdateLifeUI(Random.Range(1, 6));
+        //por cada unidad se le quita medio corazón, a 0 tiene 3 vidas y si lo pones a 4 solo te queda un corazón 
+        UpdateLifeUI(0);
     }
 
     public void UpdateLifeUI(int hitpoints)
@@ -117,10 +154,29 @@ public class UIManager : MonoBehaviour
 
     private void StartHost()
     {
-        NetworkManager.Singleton.StartHost();
-        ActivateInGameHUD();
+        mainMenu.SetActive(false);
+        menuPersonalizacion.SetActive(true);
+        //NetworkManager.Singleton.StartHost();
+        //ActivateInGameHUD();
     }
+    //Con estos metodos establecemos la sincronización de los jugadores con el botón listo
+    private void OkeyCliente()
+    {
+        //Si todos los clientes han dicho que está listo habitar boton de listo al host
+       // if ()
+        //{
+          //  preparado.IsActive();
+        //}
 
+    }
+    private bool OkeyHost()
+    {
+        //Se le congela al cliente la pantalla hasta que inicie el host 
+
+        return true;
+
+
+    }
     private void StartClient()
 
     {
