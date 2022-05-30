@@ -39,7 +39,7 @@ public class InputHandler : NetworkBehaviour
             .With("Right", "<Keyboard>/d");
 
         _jump.AddBinding("<Keyboard>/space");
-        _hook.AddBinding("<Mouse>/middleButton");
+        _hook.AddBinding("<Keyboard>/e");
         _fire.AddBinding("<Mouse>/leftButton");
         _mousePosition.AddBinding("<Mouse>/position");
     }

@@ -109,6 +109,7 @@ public class PlayerController : NetworkBehaviour
         else
         {
             anim.SetBool("isGrounded", false);
+
         }
     }
 
@@ -116,19 +117,26 @@ public class PlayerController : NetworkBehaviour
     [ServerRpc]
     void PerformJumpServerRpc()
     {
+
         if (player.State.Value == PlayerState.Grounded)
         {
             _jumpsLeft = maxJumps;
+            Debug.LogWarning("me quedan estos saltos "+_jumpsLeft);
+            
+
         }
+       
         else if (_jumpsLeft == 0)
         {
             return;
         }
-
+        Debug.LogWarning("Ha saltado");
         player.State.Value = PlayerState.Jumping;
         anim.SetBool("isJumping", true);
         rb.velocity = new Vector2(rb.velocity.x, jumpHeight);
         _jumpsLeft--;
+        _jumpsLeft--;
+        Debug.LogWarning("me quedan estos saltos " + _jumpsLeft);
     }
 
     // https://docs-multiplayer.unity3d.com/netcode/current/advanced-topics/message-system/serverrpc
@@ -142,6 +150,7 @@ public class PlayerController : NetworkBehaviour
 
         if ((player.State.Value != PlayerState.Hooked))
         {
+            
             rb.velocity = new Vector2(input.x * speed, rb.velocity.y);
         }
     }
