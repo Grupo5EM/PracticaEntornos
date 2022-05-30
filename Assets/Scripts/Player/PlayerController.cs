@@ -28,6 +28,7 @@ public class PlayerController : NetworkBehaviour
     new CapsuleCollider2D collider;
     Animator anim;
     SpriteRenderer spriteRenderer;
+    bool isJumping; 
 
     // https://docs-multiplayer.unity3d.com/netcode/current/basics/networkvariable
     NetworkVariable<bool> FlipSprite;
@@ -50,9 +51,9 @@ public class PlayerController : NetworkBehaviour
 
     private void OnEnable()
     {
-        handler.OnMove.AddListener(UpdatePlayerVisualsServerRpc);
-        handler.OnJump.AddListener(PerformJumpServerRpc);
+        handler.OnMove.AddListener(UpdatePlayerVisualsServerRpc);       
         handler.OnMoveFixedUpdate.AddListener(UpdatePlayerPositionServerRpc);
+        handler.OnJump.AddListener(PerformJumpServerRpc);
 
         FlipSprite.OnValueChanged += OnFlipSpriteValueChanged;
     }
@@ -117,26 +118,27 @@ public class PlayerController : NetworkBehaviour
     [ServerRpc]
     void PerformJumpServerRpc()
     {
-
+      
         if (player.State.Value == PlayerState.Grounded)
         {
             _jumpsLeft = maxJumps;
-            Debug.LogWarning("me quedan estos saltos "+_jumpsLeft);
-            
-
         }
        
         else if (_jumpsLeft == 0)
         {
             return;
         }
-        Debug.LogWarning("Ha saltado");
-        player.State.Value = PlayerState.Jumping;
+
+        Debug.Log("Pre-Salto: " + _jumpsLeft + ", estado del jugador: " + player.State.Value);
+ 
+        player.State.Value = PlayerState.Jumping; 
         anim.SetBool("isJumping", true);
         rb.velocity = new Vector2(rb.velocity.x, jumpHeight);
         _jumpsLeft--;
-        _jumpsLeft--;
-        Debug.LogWarning("me quedan estos saltos " + _jumpsLeft);
+        
+        Debug.Log("Post-Salto: " + _jumpsLeft + ", estado del jugador: " + player.State.Value);
+        
+
     }
 
     // https://docs-multiplayer.unity3d.com/netcode/current/advanced-topics/message-system/serverrpc
@@ -144,8 +146,13 @@ public class PlayerController : NetworkBehaviour
     void UpdatePlayerPositionServerRpc(Vector2 input)
     {
         if (IsGrounded)
-        {
+        {         
             player.State.Value = PlayerState.Grounded;
+            
+        }
+        if (player.State.Value == PlayerState.Jumping)
+        {
+            player.State.Value = PlayerState.Jumping;
         }
 
         if ((player.State.Value != PlayerState.Hooked))
