@@ -32,7 +32,9 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Button verde;
     [SerializeField] private Button naranja;
     [SerializeField] private Button azul;
-    [SerializeField] private Button Preparado;
+    [SerializeField] public  Button preparado;
+
+    
 
 
 
@@ -60,19 +62,46 @@ public class UIManager : MonoBehaviour
         buttonHost.onClick.AddListener(() => StartHost());
         buttonClient.onClick.AddListener(() => StartClient());
         buttonServer.onClick.AddListener(() => StartServer());
+        preparado.onClick.AddListener(() => Jugar());
+
+
+        rosa.onClick.AddListener(() => SkinPersonaje());
+        verde.onClick.AddListener(() => SkinPersonaje());
+        naranja.onClick.AddListener(() => SkinPersonaje());
+        azul.onClick.AddListener(() => SkinPersonaje());
         ActivateMainMenu();
     }
 
     #endregion
 
     #region UI Related Methods
+    private void SkinPersonaje()
+    {
+        //Aquí se pasaria por paramtro el color de la skin que se quiere para modificar luego el animator
 
+    }
+    private void Jugar()
+    {
+        NetworkManager.Singleton.StartHost();
+        ActivateInGameHUD();
+        mainMenu.SetActive(false);
+        menuPersonalizacion.SetActive(false);
+        inGameHUD.SetActive(true);
+    }
     private void ActivateMainMenu()
     {
         mainMenu.SetActive(true);
+
         inGameHUD.SetActive(false);
     }
-
+    //Activamos el menu
+    private void MenuPersonalizacion()
+    {
+        
+        mainMenu.SetActive(false);
+        menuPersonalizacion.SetActive(true);
+        
+    }
     private void ActivateInGameHUD()
     {
         mainMenu.SetActive(false);
@@ -125,10 +154,29 @@ public class UIManager : MonoBehaviour
 
     private void StartHost()
     {
-        NetworkManager.Singleton.StartHost();
-        ActivateInGameHUD();
+        mainMenu.SetActive(false);
+        menuPersonalizacion.SetActive(true);
+        //NetworkManager.Singleton.StartHost();
+        //ActivateInGameHUD();
     }
+    //Con estos metodos establecemos la sincronización de los jugadores con el botón listo
+    private void OkeyCliente()
+    {
+        //Si todos los clientes han dicho que está listo habitar boton de listo al host
+       // if ()
+        //{
+          //  preparado.IsActive();
+        //}
 
+    }
+    private bool OkeyHost()
+    {
+        //Se le congela al cliente la pantalla hasta que inicie el host 
+
+        return true;
+
+
+    }
     private void StartClient()
 
     {

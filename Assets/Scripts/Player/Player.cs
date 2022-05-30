@@ -7,13 +7,14 @@ using Unity.Netcode;
 public class Player : NetworkBehaviour
 {
     #region Variables
-
+    
     // https://docs-multiplayer.unity3d.com/netcode/current/basics/networkvariable
     public NetworkVariable<PlayerState> State;
     public NetworkVariable<int> vida;
     [SerializeField] private int playerID;
     public int PlayerID => playerID;
     [SerializeField] private UIManager uiVida;
+    public List<Transform> startPositions; 
 
     #endregion
 
@@ -38,6 +39,8 @@ public class Player : NetworkBehaviour
     private void OnDisable()
     {
         // https://docs-multiplayer.unity3d.com/netcode/current/api/Unity.Netcode.NetworkVariable-1.OnValueChangedDelegate
+        
+
         State.OnValueChanged -= OnPlayerStateValueChanged;
         vida.OnValueChanged -= OnPlayerLifeValueChanged;
     }
@@ -54,6 +57,7 @@ public class Player : NetworkBehaviour
             ConfigurePlayer();
             playerID = NetworkManager.Singleton.ConnectedClientsList.Count;
             ConfigureCamera();
+            ConfigurePositions();
             ConfigureControls();
         }
 
@@ -88,6 +92,13 @@ public class Player : NetworkBehaviour
         GetComponent<InputHandler>().enabled = true;
     }
 
+    void ConfigurePositions()
+    {
+        int nextPosition = Random.Range(0, startPositions.Count);
+        Debug.Log("Spawn: " + nextPosition);
+        this.transform.position = startPositions[nextPosition].position;
+    }
+
     #endregion
 
     #region RPC
@@ -118,6 +129,7 @@ public class Player : NetworkBehaviour
     // https://docs-multiplayer.unity3d.com/netcode/current/advanced-topics/message-system/serverrpc
     void OnPlayerStateValueChanged(PlayerState previous, PlayerState current)
     {
+        Debug.Log("Previo: " + previous + ", Actual: " + current); 
         State.Value = current;
     }
 
