@@ -13,7 +13,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] NetworkManager networkManager;
     UnityTransport transport;
     readonly ushort port = 7777;
-
+    [SerializeField] private PlayerController player;
     [SerializeField] Sprite[] hearts = new Sprite[3];
 
     [Header("Main Menu")]
@@ -22,6 +22,8 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Button buttonClient;
     [SerializeField] private Button buttonServer;
     [SerializeField] private InputField inputFieldIP;
+    
+
 
     //Añadimos por aquí más elementos para el lobby 
     [Header("Menu Personalización")]
@@ -34,6 +36,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Button azul;
     [SerializeField] public  Button preparado;
 
+  
     
 
 
@@ -65,19 +68,32 @@ public class UIManager : MonoBehaviour
         preparado.onClick.AddListener(() => Jugar());
 
 
-        rosa.onClick.AddListener(() => SkinPersonaje());
-        verde.onClick.AddListener(() => SkinPersonaje());
-        naranja.onClick.AddListener(() => SkinPersonaje());
-        azul.onClick.AddListener(() => SkinPersonaje());
+        rosa.onClick.AddListener(() => SkinPersonaje("Rosa"));
+        verde.onClick.AddListener(() => SkinPersonaje("Verde"));
+        naranja.onClick.AddListener(() => SkinPersonaje("Naranja"));
+        azul.onClick.AddListener(() => SkinPersonaje("Azul"));
         ActivateMainMenu();
     }
 
     #endregion
 
     #region UI Related Methods
-    private void SkinPersonaje()
+    private void SkinPersonaje(string color)
     {
         //Aquí se pasaria por paramtro el color de la skin que se quiere para modificar luego el animator
+        if (color == "Verde")
+        {
+            
+        } else if (color == "Azul")
+        {
+
+        } else if (color == "Rosa")
+        {
+            
+        } else if (color == "Naranja")
+        {
+
+        }
 
     }
     private void Jugar()
@@ -205,3 +221,5 @@ public class UIManager : MonoBehaviour
     #endregion
 
 }
+
+

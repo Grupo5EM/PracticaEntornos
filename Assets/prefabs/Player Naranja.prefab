@@ -59,9 +59,13 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5644749167613886766, guid: 8b8022f03592ae740a2437afb13134f6, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 1893670189769602202, guid: f6810b8c9a5bd7647b8028bc71e515ba, type: 3}
     - target: {fileID: 5644749167613886767, guid: 8b8022f03592ae740a2437afb13134f6, type: 3}
       propertyPath: m_Name
-      value: Player
+      value: Player Naranja
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8b8022f03592ae740a2437afb13134f6, type: 3}

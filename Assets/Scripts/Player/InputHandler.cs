@@ -64,6 +64,7 @@ public class InputHandler : NetworkBehaviour
 
     private void Update()
     {
+        //Se ejecuta primero el update, antes que el Fixed Update
         if (IsLocalPlayer)
         {
             CachedMoveInput = _move.ReadValue<Vector2>();
@@ -78,16 +79,18 @@ public class InputHandler : NetworkBehaviour
             // https://docs.unity3d.com/2020.3/Documentation/ScriptReference/Camera.ScreenToWorldPoint.html
             var screenPoint = Camera.main.ScreenToWorldPoint(mousePosition);
             if (hookPerformed) { Hook(screenPoint); }
-
+            //Como la tecla espacio ha sido presionada, se ejecuta el salto y por tanto su método
             if (jumpPerformed) { Jump(); }
             if (_fire.WasPerformedThisFrame()) { Fire(); }
 
             HookRender(CachedMoveInput);
+            //Termina la ejecución del Update, por lo tanto pasamos al Fixed Update. En este punto, el estado todavía sigue siendo jumping
         }
     }
 
     private void FixedUpdate()
     {
+        //Pasamos al fixed Update, que es donde calcula las físicas. Al ejecutar este método se mete dentro del UpdatePlayerPositionServer del PlayerController
         MoveFixedUpdate(CachedMoveInput);
     }
 

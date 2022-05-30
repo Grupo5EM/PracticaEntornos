@@ -10,6 +10,7 @@ public class Player : NetworkBehaviour
     
     // https://docs-multiplayer.unity3d.com/netcode/current/basics/networkvariable
     public NetworkVariable<PlayerState> State;
+    public NetworkVariable<CharachterColor> characterColor;
     public List<Transform> startPositions; 
 
 
@@ -22,6 +23,7 @@ public class Player : NetworkBehaviour
         NetworkManager.OnClientConnectedCallback += ConfigurePlayer;
 
         State = new NetworkVariable<PlayerState>();
+        characterColor = new NetworkVariable<CharachterColor>();
     }
 
     private void OnEnable()
@@ -57,7 +59,8 @@ public class Player : NetworkBehaviour
 
     void ConfigurePlayer()
     {
-        UpdatePlayerStateServerRpc(PlayerState.Grounded);
+        //UpdatePlayerStateServerRpc(PlayerState.Grounded);
+
     }
 
     void ConfigureCamera()
@@ -94,6 +97,12 @@ public class Player : NetworkBehaviour
         State.Value = state;
     }
 
+    [ServerRpc]
+    public void UpdateCharacterColorServerRpc(CharachterColor color)
+    {
+        characterColor.Value = color;
+    }
+
     #endregion
 
     #endregion
@@ -107,6 +116,11 @@ public class Player : NetworkBehaviour
         State.Value = current;
     }
 
+    void OnCharachterColorValueChanged(CharachterColor previous, CharachterColor current)
+    {
+        characterColor.Value = current;
+    }
+
     #endregion
 }
 
@@ -115,4 +129,12 @@ public enum PlayerState
     Grounded = 0,
     Jumping = 1,
     Hooked = 2
+}
+
+public enum CharachterColor
+{
+    Verde = 0,
+    Azul = 1,
+    Rosa = 2,
+    Naranja = 3
 }
