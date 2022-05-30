@@ -22,7 +22,7 @@ public class InputHandler : NetworkBehaviour
     public UnityEvent<Vector2> OnHook;
     public UnityEvent<Vector2> OnHookRender;
     public UnityEvent OnJump;
-    public UnityEvent OnFire;
+    public UnityEvent<Vector2, int> OnFire;
 
     Vector2 CachedMoveInput { get; set; }
 
@@ -78,9 +78,9 @@ public class InputHandler : NetworkBehaviour
             // https://docs.unity3d.com/2020.3/Documentation/ScriptReference/Camera.ScreenToWorldPoint.html
             var screenPoint = Camera.main.ScreenToWorldPoint(mousePosition);
             if (hookPerformed) { Hook(screenPoint); }
-
+            print(OwnerClientId);
             if (jumpPerformed) { Jump(); }
-            if (_fire.WasPerformedThisFrame()) { Fire(); }
+            if (_fire.WasPerformedThisFrame()) { Fire(screenPoint, (int)OwnerClientId); }
 
             HookRender(CachedMoveInput);
         }
@@ -120,9 +120,9 @@ public class InputHandler : NetworkBehaviour
         OnHookRender?.Invoke(input);
     }
 
-    void Fire()
+    void Fire(Vector2 input, int playerID)
     {
-        OnFire?.Invoke();
+        OnFire?.Invoke(input, playerID);
     }
 
     void MousePosition(Vector2 input)

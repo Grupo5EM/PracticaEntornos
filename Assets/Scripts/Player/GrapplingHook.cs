@@ -8,12 +8,14 @@ public class GrapplingHook : NetworkBehaviour
     InputHandler handler;
     // https://docs.unity3d.com/2020.3/Documentation/ScriptReference/DistanceJoint2D.html
     DistanceJoint2D rope;
+
     // // https://docs.unity3d.com/2020.3/Documentation/ScriptReference/LineRenderer.html
     LineRenderer ropeRenderer;
     Transform playerTransform;
     [SerializeField] Material material;
     // https://docs.unity3d.com/2020.3/Documentation/ScriptReference/LayerMask.html
     LayerMask layer;
+    LayerMask layerPlayer;
     Player player;
 
     readonly float climbSpeed = 2f;
@@ -48,6 +50,7 @@ public class GrapplingHook : NetworkBehaviour
 
         playerTransform = transform;
         layer = LayerMask.GetMask("Obstacles");
+        layerPlayer = LayerMask.GetMask("Player");
 
         rb = GetComponent<Rigidbody2D>();
         player = GetComponent<Player>();
@@ -58,20 +61,22 @@ public class GrapplingHook : NetworkBehaviour
     private void OnEnable()
     {
         handler.OnHookRender.AddListener(UpdateHookServerRpc);
+        handler.OnHookRender.AddListener(UpdateBulletServerRpc);
         handler.OnMoveFixedUpdate.AddListener(SwingRopeServerRpc);
         handler.OnJump.AddListener(JumpPerformedServerRpc);
         handler.OnHook.AddListener(LaunchHookServerRpc);
-
+        handler.OnFire.AddListener(ShootWeaponServerRpc);
         ropeDistance.OnValueChanged += OnRopeDistanceValueChanged;
     }
 
     private void OnDisable()
     {
         handler.OnHookRender.RemoveListener(UpdateHookServerRpc);
+        handler.OnHookRender.RemoveListener(UpdateBulletServerRpc);
         handler.OnMoveFixedUpdate.RemoveListener(SwingRopeServerRpc);
         handler.OnJump.RemoveListener(JumpPerformedServerRpc);
         handler.OnHook.RemoveListener(LaunchHookServerRpc);
-
+        handler.OnFire.RemoveListener(ShootWeaponServerRpc);
         ropeDistance.OnValueChanged -= OnRopeDistanceValueChanged;
     }
 
@@ -142,6 +147,45 @@ public class GrapplingHook : NetworkBehaviour
         }
     }
 
+    [ServerRpc]
+    void UpdateBulletServerRpc(Vector2 input)
+    {
+        if (player.State.Value != PlayerState.Hooked)
+        {
+            UpdateBulletClientRpc();
+            //WaitForSecondsRealtime w = new WaitForSecondsRealtime(1);
+            //w.waitTime = 1;
+            RemoveRopeClientRpc();
+            rope.enabled = false;
+            ropeRenderer.enabled = false;
+
+        }
+    }
+
+    [ServerRpc]
+
+    void ShootWeaponServerRpc(Vector2 input, int playerShooting)
+    {
+        var direction = (input - (Vector2)playerTransform.position).normalized;
+        var hit = Physics2D.Raycast(playerTransform.position, direction, Mathf.Infinity, layerPlayer);
+        
+        if (hit.collider.gameObject.TryGetComponent(out Player otherPlayer) && otherPlayer.PlayerID != playerShooting)
+        {
+            print("playerShooting:" + playerShooting + " playerImpacting: " + otherPlayer.PlayerID);
+            Debug.DrawRay(playerTransform.position, direction, Color.green);
+            var anchor = hit.centroid;
+            ropeRenderer.SetPosition(1, anchor);
+            UpdateBulletClientRpc(hit.centroid);
+            Debug.Log(hit.collider.gameObject);
+            hit.collider.gameObject.SendMessage("UpdatePlayerLifeServerRpc", 1);
+        }
+        else
+        {
+            Debug.DrawRay(playerTransform.position, direction, Color.red);
+            Debug.Log("NADA");
+        }
+    }
+
     #endregion
 
     #region ClientRPC
@@ -175,6 +219,25 @@ public class GrapplingHook : NetworkBehaviour
     void RemoveRopeClientRpc()
     {
         rope.enabled = false;
+        ropeRenderer.enabled = false;
+    }
+
+    [ClientRpc]
+    void UpdateBulletClientRpc(Vector2 anchor)
+    {
+        ropeRenderer.enabled = true;
+        ropeRenderer.SetPosition(1, anchor);
+    }
+
+    [ClientRpc]
+    void UpdateBulletClientRpc()
+    {
+        ropeRenderer.SetPosition(0, playerTransform.position);
+    }
+
+    [ClientRpc]
+    void RemoveBulletClientRpc()
+    {
         ropeRenderer.enabled = false;
     }
 

@@ -10,6 +10,10 @@ public class Player : NetworkBehaviour
 
     // https://docs-multiplayer.unity3d.com/netcode/current/basics/networkvariable
     public NetworkVariable<PlayerState> State;
+    public NetworkVariable<int> vida;
+    [SerializeField] private int playerID;
+    public int PlayerID => playerID;
+    [SerializeField] private UIManager uiVida;
 
     #endregion
 
@@ -20,18 +24,22 @@ public class Player : NetworkBehaviour
         NetworkManager.OnClientConnectedCallback += ConfigurePlayer;
 
         State = new NetworkVariable<PlayerState>();
+        vida = new NetworkVariable<int> { Value = 0 };
+        uiVida = GameObject.Find("UIManager").GetComponent<UIManager>();
     }
 
     private void OnEnable()
     {
         // https://docs-multiplayer.unity3d.com/netcode/current/api/Unity.Netcode.NetworkVariable-1.OnValueChangedDelegate
         State.OnValueChanged += OnPlayerStateValueChanged;
+        vida.OnValueChanged += OnPlayerLifeValueChanged;
     }
 
     private void OnDisable()
     {
         // https://docs-multiplayer.unity3d.com/netcode/current/api/Unity.Netcode.NetworkVariable-1.OnValueChangedDelegate
         State.OnValueChanged -= OnPlayerStateValueChanged;
+        vida.OnValueChanged -= OnPlayerLifeValueChanged;
     }
 
     #endregion
@@ -40,17 +48,30 @@ public class Player : NetworkBehaviour
 
     void ConfigurePlayer(ulong clientID)
     {
-        if (IsLocalPlayer)
+        if (IsLocalPlayer&& playerID==0)
         {
+            print("se conecto jugador");
             ConfigurePlayer();
+            playerID = NetworkManager.Singleton.ConnectedClientsList.Count;
             ConfigureCamera();
             ConfigureControls();
         }
+
+        /*if (IsServer)
+        {
+            print("se conecto jugador");
+            ConfigurePlayer();
+            playerID = NetworkManager.Singleton.ConnectedClientsList.Count;
+            ConfigureCamera();
+            ConfigureControls();
+        }*/
     }
 
     void ConfigurePlayer()
     {
         UpdatePlayerStateServerRpc(PlayerState.Grounded);
+        vida.Value = 0;
+        uiVida.UpdateLifeUI(vida.Value);
     }
 
     void ConfigureCamera()
@@ -80,6 +101,14 @@ public class Player : NetworkBehaviour
         State.Value = state;
     }
 
+    [ServerRpc]
+
+    public void UpdatePlayerLifeServerRpc(int vida)
+    {
+        this.vida.Value += vida;
+        uiVida.UpdateLifeUI(this.vida.Value);
+    }
+
     #endregion
 
     #endregion
@@ -90,6 +119,11 @@ public class Player : NetworkBehaviour
     void OnPlayerStateValueChanged(PlayerState previous, PlayerState current)
     {
         State.Value = current;
+    }
+
+    void OnPlayerLifeValueChanged(int previous, int current)
+    {
+        vida.Value = current;
     }
 
     #endregion
