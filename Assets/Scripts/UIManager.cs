@@ -13,7 +13,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] NetworkManager networkManager;
     UnityTransport transport;
     readonly ushort port = 7777;
-    [SerializeField] private PlayerController player;
+    [SerializeField] private PlayerController playerController;
     [SerializeField] Sprite[] hearts = new Sprite[3];
 
     [Header("Main Menu")]
@@ -35,8 +35,8 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Button naranja;
     [SerializeField] private Button azul;
     [SerializeField] public  Button preparado;
-
-  
+    [SerializeField] private GameManager gameManager;
+    [SerializeField] List<GameObject> prefabSkins;
     
 
 
@@ -68,31 +68,37 @@ public class UIManager : MonoBehaviour
         preparado.onClick.AddListener(() => Jugar());
 
 
-        rosa.onClick.AddListener(() => SkinPersonaje("Rosa"));
-        verde.onClick.AddListener(() => SkinPersonaje("Verde"));
-        naranja.onClick.AddListener(() => SkinPersonaje("Naranja"));
-        azul.onClick.AddListener(() => SkinPersonaje("Azul"));
+       
+        verde.onClick.AddListener(() => SkinPersonaje(0));
+        azul.onClick.AddListener(() => SkinPersonaje(1));
+        rosa.onClick.AddListener(() => SkinPersonaje(2));
+        naranja.onClick.AddListener(() => SkinPersonaje(3));
+        
         ActivateMainMenu();
     }
 
     #endregion
 
     #region UI Related Methods
-    private void SkinPersonaje(string color)
+    private void SkinPersonaje(int color)
     {
         //Aquí se pasaria por paramtro el color de la skin que se quiere para modificar luego el animator
-        if (color == "Verde")
+        if (color == 0)
         {
-            
-        } else if (color == "Azul")
+            gameManager.setSkin(prefabSkins[0]);
+            Debug.Log("Skin cambiada a verde");
+        } else if (color == 1)
         {
-
-        } else if (color == "Rosa")
+            gameManager.setSkin(prefabSkins[1]);
+            Debug.Log("Skin cambiada a azul");
+        } else if (color == 2)
         {
-            
-        } else if (color == "Naranja")
+            gameManager.setSkin(prefabSkins[2]);
+            Debug.Log("Skin cambiada a rosa");
+        } else if (color == 3)
         {
-
+            gameManager.setSkin(prefabSkins[3]);
+            Debug.Log("Skin cambiada a naranja");
         }
 
     }

@@ -82,8 +82,6 @@ public class InputHandler : NetworkBehaviour
             
           //Como la tecla espacio ha sido presionada, se ejecuta el salto y por tanto su m?odo
 
-            print(OwnerClientId);
-
             if (jumpPerformed) { Jump(); }
             if (_fire.WasPerformedThisFrame()) { Fire(screenPoint, (int)OwnerClientId); }
 

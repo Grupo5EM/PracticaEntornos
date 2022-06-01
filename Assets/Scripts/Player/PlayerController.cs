@@ -27,15 +27,7 @@ public class PlayerController : NetworkBehaviour
     Rigidbody2D rb;
     new CapsuleCollider2D collider;
     Animator anim;
-    public RuntimeAnimatorController colorVerde;
-    public RuntimeAnimatorController colorAzul;
-    public RuntimeAnimatorController colorRosa;
-    public RuntimeAnimatorController colorNaranja;
     SpriteRenderer spriteRenderer;
-    bool isVerde;
-    bool isAzul;
-    bool isRosa;
-    bool isNaranja;
     bool isJumping;
 
     // https://docs-multiplayer.unity3d.com/netcode/current/basics/networkvariable
@@ -124,35 +116,11 @@ public class PlayerController : NetworkBehaviour
     }
 
 
-
-    [ServerRpc]
-    void UpdateColorServerRpc()
-    {
-        if (isVerde)
-        {
-            anim.runtimeAnimatorController = colorVerde;
-            player.characterColor.Value = CharachterColor.Verde;
-        }
-        else if (isAzul)
-        {
-            anim.runtimeAnimatorController = colorAzul;
-            player.characterColor.Value = CharachterColor.Azul;
-        } else if (isRosa)
-        {
-            anim.runtimeAnimatorController = colorRosa;
-            player.characterColor.Value = CharachterColor.Rosa;
-        } else if (isNaranja)
-        {
-            anim.runtimeAnimatorController = colorNaranja;
-            player.characterColor.Value = CharachterColor.Naranja;
-        }
-
-    }
-
     // https://docs-multiplayer.unity3d.com/netcode/current/advanced-topics/message-system/serverrpc
     [ServerRpc]
     void PerformJumpServerRpc()
     {
+
         //Se ejecuta cada vez que presionas la tecla de salto 
         if (player.State.Value == PlayerState.Grounded)
         {
@@ -161,7 +129,7 @@ public class PlayerController : NetworkBehaviour
         }
        
         else if (_jumpsLeft == 0)
-        {           
+        {
             return;
         }
 
@@ -189,9 +157,17 @@ public class PlayerController : NetworkBehaviour
         {                   
             //...actualiza la variable y pasa de Jumping a Grounded
             player.State.Value = PlayerState.Grounded;
+            if (_jumpsLeft == 0)
+            {
+                _jumpsLeft = maxJumps;
+            }
             //Ahora el Jump no se vuelve a ejecutar hasta que pulsemos el salto
         }
 
+        if (!IsGrounded && player.State.Value != PlayerState.Hooked)
+        {
+            player.State.Value = PlayerState.Jumping;
+        }
 
         if ((player.State.Value != PlayerState.Hooked))
         {

@@ -17,7 +17,7 @@ public class Player : NetworkBehaviour
     [SerializeField] private int playerID;
     public int PlayerID => playerID;
     [SerializeField] private UIManager uiVida;
-
+    [SerializeField] GameObject playerPrefab;
     public List<Transform> startPositions; 
 
     #endregion
@@ -26,6 +26,8 @@ public class Player : NetworkBehaviour
 
     private void Awake()
     {
+        Debug.Log("Desperté");
+        Debug.Log(IsLocalPlayer);
         NetworkManager.OnClientConnectedCallback += ConfigurePlayer;
 
         State = new NetworkVariable<PlayerState>();
@@ -57,16 +59,19 @@ public class Player : NetworkBehaviour
 
     #region Config Methods
 
-    void ConfigurePlayer(ulong clientID)
+    public void ConfigurePlayer(ulong clientID)
     {
-        if (IsLocalPlayer&& playerID==0)
+        Debug.Log("Se configura");
+        Debug.Log(IsLocalPlayer);
+        if (IsLocalPlayer)
         {
-            print("se conecto jugador");
-            ConfigurePlayer();
-            playerID = NetworkManager.Singleton.ConnectedClientsList.Count;
+            Debug.Log("Configura jugador");
+            ConfigureInitialPlayerState();
             ConfigureCamera();
             ConfigurePositions();
             ConfigureControls();
+            
+            
         }
 
         /*if (IsServer)
@@ -79,11 +84,10 @@ public class Player : NetworkBehaviour
         }*/
     }
 
-    void ConfigurePlayer()
+
+
+    void ConfigureInitialPlayerState()
     {
-
-        //UpdatePlayerStateServerRpc(PlayerState.Grounded);
-
 
         UpdatePlayerStateServerRpc(PlayerState.Grounded);
         vida.Value = 0;
@@ -112,6 +116,8 @@ public class Player : NetworkBehaviour
         this.transform.position = startPositions[nextPosition].position;
     }
 
+ 
+
     #endregion
 
     #region RPC
@@ -131,7 +137,9 @@ public class Player : NetworkBehaviour
     {
         characterColor.Value = color;
 
+    }
 
+    [ServerRpc]
     public void UpdatePlayerLifeServerRpc(int vida)
     {
         this.vida.Value += vida;
@@ -156,10 +164,11 @@ public class Player : NetworkBehaviour
     {
         characterColor.Value = current;
 
+    }
     void OnPlayerLifeValueChanged(int previous, int current)
     {
         vida.Value = current;
- f14df69cb6175659794575d98ff1e32ffc70c5a7
+
     }
 
     #endregion
