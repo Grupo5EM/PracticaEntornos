@@ -35,16 +35,21 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Button naranja;
     [SerializeField] private Button azul;
     [SerializeField] public  Button preparado;
+
     [SerializeField] private GameManager gameManager;
     [SerializeField] List<GameObject> prefabSkins;
     
+    [Header("Final de Juego")]
+    [SerializeField] private GameObject menuVictoria;
+    [SerializeField] private Text TextoFinal;
 
 
 
     [Header("In-Game HUD")]
     [SerializeField] private GameObject inGameHUD;
     [SerializeField] RawImage[] heartsUI = new RawImage[3];
-
+    [SerializeField] private Text bajasJugador;
+    [SerializeField] private Text informacionBajas;
     #endregion
 
     #region Unity Event Functions
@@ -102,6 +107,12 @@ public class UIManager : MonoBehaviour
         }
 
     }
+    private void FinPartida(string ganador)
+    {
+        menuVictoria.SetActive(true);
+        TextoFinal.text = ganador+" Os ha pegado una paliza";
+
+    }
     private void Jugar()
     {
         NetworkManager.Singleton.StartHost();
@@ -116,6 +127,10 @@ public class UIManager : MonoBehaviour
 
         inGameHUD.SetActive(false);
     }
+    private void ActualizarBajas(int bajas)
+    {
+        bajasJugador.text = ""+bajas;
+    }
     //Activamos el menu
     private void MenuPersonalizacion()
     {
@@ -123,6 +138,13 @@ public class UIManager : MonoBehaviour
         mainMenu.SetActive(false);
         menuPersonalizacion.SetActive(true);
         
+    }
+    //En este metodo informaremos que jugador a matado a quien
+    private void ParteDeGuerra(string asesino, string muerto)
+    {
+
+        informacionBajas.text = " Ha matado a ";
+
     }
     private void ActivateInGameHUD()
     {

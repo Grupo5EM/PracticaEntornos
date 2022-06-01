@@ -7,7 +7,7 @@ using Unity.Netcode;
 public class Player : NetworkBehaviour
 {
     #region Variables
-    
+
     // https://docs-multiplayer.unity3d.com/netcode/current/basics/networkvariable
     public NetworkVariable<PlayerState> State;
 
@@ -17,8 +17,13 @@ public class Player : NetworkBehaviour
     [SerializeField] private int playerID;
     public int PlayerID => playerID;
     [SerializeField] private UIManager uiVida;
+
     [SerializeField] GameObject playerPrefab;
     public List<Transform> startPositions; 
+    //Variable para el modo DeatMatch
+    public int kills=0;
+    public List<Transform> startPositions;
+
 
     #endregion
 
@@ -26,7 +31,7 @@ public class Player : NetworkBehaviour
 
     private void Awake()
     {
-        Debug.Log("Desperté");
+        Debug.Log("Despert?);
         Debug.Log(IsLocalPlayer);
         NetworkManager.OnClientConnectedCallback += ConfigurePlayer;
 
@@ -49,7 +54,7 @@ public class Player : NetworkBehaviour
     private void OnDisable()
     {
         // https://docs-multiplayer.unity3d.com/netcode/current/api/Unity.Netcode.NetworkVariable-1.OnValueChangedDelegate
-        
+
 
         State.OnValueChanged -= OnPlayerStateValueChanged;
         vida.OnValueChanged -= OnPlayerLifeValueChanged;
@@ -61,6 +66,7 @@ public class Player : NetworkBehaviour
 
     public void ConfigurePlayer(ulong clientID)
     {
+
         Debug.Log("Se configura");
         Debug.Log(IsLocalPlayer);
         if (IsLocalPlayer)
@@ -136,7 +142,6 @@ public class Player : NetworkBehaviour
     public void UpdateCharacterColorServerRpc(CharachterColor color)
     {
         characterColor.Value = color;
-
     }
 
     [ServerRpc]
@@ -155,7 +160,7 @@ public class Player : NetworkBehaviour
     // https://docs-multiplayer.unity3d.com/netcode/current/advanced-topics/message-system/serverrpc
     void OnPlayerStateValueChanged(PlayerState previous, PlayerState current)
     {
-        Debug.Log("Previo: " + previous + ", Actual: " + current); 
+        Debug.Log("Previo: " + previous + ", Actual: " + current);
         State.Value = current;
     }
 
@@ -165,26 +170,25 @@ public class Player : NetworkBehaviour
         characterColor.Value = current;
 
     }
+    
     void OnPlayerLifeValueChanged(int previous, int current)
     {
         vida.Value = current;
 
     }
 
-    #endregion
-}
+    public enum PlayerState
+    {
+        Grounded = 0,
+        Jumping = 1,
+        Hooked = 2
+    }
 
-public enum PlayerState
-{
-    Grounded = 0,
-    Jumping = 1,
-    Hooked = 2
-}
-
-public enum CharachterColor
-{
-    Verde = 0,
-    Azul = 1,
-    Rosa = 2,
-    Naranja = 3
+    public enum CharachterColor
+    {
+        Verde = 0,
+        Azul = 1,
+        Rosa = 2,
+        Naranja = 3
+    }
 }
