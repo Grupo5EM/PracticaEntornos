@@ -13,7 +13,7 @@ public class Player : NetworkBehaviour
     public NetworkVariable<int> vida;
     [SerializeField] private int playerID;
     public int PlayerID => playerID;
-    [SerializeField] private UIManager uiVida;
+    private UIManager uiVida;
     public List<Transform> startPositions; 
 
     #endregion
@@ -25,7 +25,7 @@ public class Player : NetworkBehaviour
         NetworkManager.OnClientConnectedCallback += ConfigurePlayer;
 
         State = new NetworkVariable<PlayerState>();
-        vida = new NetworkVariable<int> { Value = 0 };
+        vida = new NetworkVariable<int>(0,NetworkVariableReadPermission.Everyone,NetworkVariableWritePermission.Server);
         uiVida = GameObject.Find("UIManager").GetComponent<UIManager>();
     }
 
@@ -51,11 +51,11 @@ public class Player : NetworkBehaviour
 
     void ConfigurePlayer(ulong clientID)
     {
-        if (IsLocalPlayer&& playerID==0)
+        if (IsLocalPlayer)
         {
             print("se conecto jugador");
             ConfigurePlayer();
-            playerID = NetworkManager.Singleton.ConnectedClientsList.Count;
+            //playerID = NetworkManager.Singleton.ConnectedClientsList.Count;
             ConfigureCamera();
             ConfigurePositions();
             ConfigureControls();
@@ -116,8 +116,19 @@ public class Player : NetworkBehaviour
 
     public void UpdatePlayerLifeServerRpc(int vida)
     {
-        this.vida.Value += vida;
-        uiVida.UpdateLifeUI(this.vida.Value);
+        this.vida.Value=vida;
+    }
+
+
+    #endregion
+
+    #region ClientRPC
+
+    [ClientRpc]
+
+    public void UpdatePlayerLifeClientRpc(int vida)
+    {
+        
     }
 
     #endregion
@@ -136,6 +147,8 @@ public class Player : NetworkBehaviour
     void OnPlayerLifeValueChanged(int previous, int current)
     {
         vida.Value = current;
+        if(!IsLocalPlayer)
+            this.uiVida.UpdateLifeUI(vida.Value);
     }
 
     #endregion

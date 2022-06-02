@@ -15,7 +15,7 @@ public class GrapplingHook : NetworkBehaviour
     [SerializeField] Material material;
     // https://docs.unity3d.com/2020.3/Documentation/ScriptReference/LayerMask.html
     LayerMask layer;
-    LayerMask layerPlayer;
+    NetworkVariable<LayerMask> layerPlayer;
     Player player;
 
     readonly float climbSpeed = 2f;
@@ -50,7 +50,7 @@ public class GrapplingHook : NetworkBehaviour
 
         playerTransform = transform;
         layer = LayerMask.GetMask("Obstacles");
-        layerPlayer = LayerMask.GetMask("Player");
+        layerPlayer = new NetworkVariable<LayerMask>(LayerMask.GetMask("Player"));
 
         rb = GetComponent<Rigidbody2D>();
         player = GetComponent<Player>();
@@ -61,7 +61,7 @@ public class GrapplingHook : NetworkBehaviour
     private void OnEnable()
     {
         handler.OnHookRender.AddListener(UpdateHookServerRpc);
-        handler.OnHookRender.AddListener(UpdateBulletServerRpc);
+        //handler.OnHookRender.AddListener(UpdateBulletServerRpc);
         handler.OnMoveFixedUpdate.AddListener(SwingRopeServerRpc);
         handler.OnJump.AddListener(JumpPerformedServerRpc);
         handler.OnHook.AddListener(LaunchHookServerRpc);
@@ -72,7 +72,7 @@ public class GrapplingHook : NetworkBehaviour
     private void OnDisable()
     {
         handler.OnHookRender.RemoveListener(UpdateHookServerRpc);
-        handler.OnHookRender.RemoveListener(UpdateBulletServerRpc);
+        //handler.OnHookRender.RemoveListener(UpdateBulletServerRpc);
         handler.OnMoveFixedUpdate.RemoveListener(SwingRopeServerRpc);
         handler.OnJump.RemoveListener(JumpPerformedServerRpc);
         handler.OnHook.RemoveListener(LaunchHookServerRpc);
@@ -147,37 +147,24 @@ public class GrapplingHook : NetworkBehaviour
         }
     }
 
-    [ServerRpc]
-    void UpdateBulletServerRpc(Vector2 input)
-    {
-        if (player.State.Value != PlayerState.Hooked)
-        {
-            UpdateBulletClientRpc();
-            //WaitForSecondsRealtime w = new WaitForSecondsRealtime(1);
-            //w.waitTime = 1;
-            RemoveRopeClientRpc();
-            rope.enabled = false;
-            ropeRenderer.enabled = false;
-
-        }
-    }
+    
 
     [ServerRpc]
 
     void ShootWeaponServerRpc(Vector2 input, int playerShooting)
     {
         var direction = (input - (Vector2)playerTransform.position).normalized;
-        var hit = Physics2D.Raycast(playerTransform.position, direction, Mathf.Infinity, layerPlayer);
+        RaycastHit2D[] hits = Physics2D.RaycastAll(playerTransform.position, direction);
         
-        if (hit.collider.gameObject.TryGetComponent(out Player otherPlayer) && otherPlayer.PlayerID != playerShooting)
+        if (hits[1].collider.gameObject.GetComponent<CapsuleCollider2D>())
         {
-            print("playerShooting:" + playerShooting + " playerImpacting: " + otherPlayer.PlayerID);
             Debug.DrawRay(playerTransform.position, direction, Color.green);
-            var anchor = hit.centroid;
+            var anchor = hits[1].centroid;
             ropeRenderer.SetPosition(1, anchor);
-            UpdateBulletClientRpc(hit.centroid);
-            Debug.Log(hit.collider.gameObject);
-            hit.collider.gameObject.SendMessage("UpdatePlayerLifeServerRpc", 1);
+            //UpdateBulletClientRpc(hits[1].centroid);
+            Player hiteao = hits[1].collider.gameObject.GetComponent<Player>();
+            hiteao.vida.Value += 1; 
+            
         }
         else
         {
@@ -222,23 +209,15 @@ public class GrapplingHook : NetworkBehaviour
         ropeRenderer.enabled = false;
     }
 
-    [ClientRpc]
-    void UpdateBulletClientRpc(Vector2 anchor)
-    {
-        ropeRenderer.enabled = true;
-        ropeRenderer.SetPosition(1, anchor);
-    }
 
     [ClientRpc]
-    void UpdateBulletClientRpc()
+    void UpdateVidaClientRpc(int hiteaoID, int vida)
     {
-        ropeRenderer.SetPosition(0, playerTransform.position);
-    }
-
-    [ClientRpc]
-    void RemoveBulletClientRpc()
-    {
-        ropeRenderer.enabled = false;
+        NetworkClient hiteaoClient;
+        Player hiteaoAux;
+        NetworkManager.ConnectedClients.TryGetValue((ulong)hiteaoID, out hiteaoClient);
+        hiteaoClient.PlayerObject.TryGetComponent<Player>( out hiteaoAux);
+        hiteaoAux.UpdatePlayerLifeServerRpc(vida);
     }
 
     #endregion

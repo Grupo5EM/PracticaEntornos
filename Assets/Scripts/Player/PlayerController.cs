@@ -33,6 +33,7 @@ public class PlayerController : NetworkBehaviour
     // https://docs-multiplayer.unity3d.com/netcode/current/basics/networkvariable
     NetworkVariable<bool> FlipSprite;
 
+    private UIManager _uIManager;
     #endregion
 
     #region Unity Event Functions
@@ -161,6 +162,13 @@ public class PlayerController : NetworkBehaviour
             rb.velocity = new Vector2(input.x * speed, rb.velocity.y);
         }
     }
+
+    //[ServerRpc]
+    //void UpdateVidaServerRpc(NetworkVariable<ulong> idCliente, int vidaJugador)
+    //{
+    //    _uIManager.UpdateLifeUI(vidaJugador);
+        
+    //}
 
     #endregion
 
