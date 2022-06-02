@@ -404,10 +404,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   State:
     m_InternalValue: 0
+
   vida:
     m_InternalValue: 0
   playerID: 0
   uiVida: {fileID: 0}
+
+  playerPrefab: {fileID: 0}
   startPositions:
   - {fileID: 2364838769126004091, guid: bf1c45d35740ef74faf5e681c95e35ab, type: 3}
   - {fileID: 552170597596643432, guid: 908f96668a73a34449bd4ee7272b36fe, type: 3}
@@ -505,6 +508,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f6e6c65243d1b4949a40b6704489359d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  colorVerde: {fileID: 9100000, guid: e0d7adc8be511a14dbdab77d72cda5fb, type: 2}
+  colorAzul: {fileID: 9100000, guid: 9d8cd007e2fbf8f4e8283b7de1a9220a, type: 2}
+  colorRosa: {fileID: 9100000, guid: 479dd0d64371b2e4496d5a8cfbb47b8c, type: 2}
+  colorNaranja: {fileID: 9100000, guid: f79b5ca4e14bbcd448454334388dc085, type: 2}
 --- !u!114 &8835148374866897493
 MonoBehaviour:
   m_ObjectHideFlags: 0

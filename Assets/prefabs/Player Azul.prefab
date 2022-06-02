@@ -11,6 +11,10 @@ PrefabInstance:
       propertyPath: m_Controller
       value: 
       objectReference: {fileID: 9100000, guid: 9d8cd007e2fbf8f4e8283b7de1a9220a, type: 2}
+    - target: {fileID: 169404036177825696, guid: 8b8022f03592ae740a2437afb13134f6, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2569724402085557493, guid: 8b8022f03592ae740a2437afb13134f6, type: 3}
       propertyPath: GlobalObjectIdHash
       value: 951099334
@@ -65,7 +69,7 @@ PrefabInstance:
       objectReference: {fileID: 7755224123621818408, guid: f6810b8c9a5bd7647b8028bc71e515ba, type: 3}
     - target: {fileID: 5644749167613886767, guid: 8b8022f03592ae740a2437afb13134f6, type: 3}
       propertyPath: m_Name
-      value: Player
+      value: Player Azul
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8b8022f03592ae740a2437afb13134f6, type: 3}

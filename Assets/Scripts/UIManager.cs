@@ -13,7 +13,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] NetworkManager networkManager;
     UnityTransport transport;
     readonly ushort port = 7777;
-
+    [SerializeField] private PlayerController playerController;
     [SerializeField] Sprite[] hearts = new Sprite[3];
 
     [Header("Main Menu")]
@@ -22,6 +22,8 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Button buttonClient;
     [SerializeField] private Button buttonServer;
     [SerializeField] private InputField inputFieldIP;
+    
+
 
     //Añadimos por aquí más elementos para el lobby 
     [Header("Menu Personalización")]
@@ -34,14 +36,20 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Button azul;
     [SerializeField] public  Button preparado;
 
+    [SerializeField] private GameManager gameManager;
+    [SerializeField] List<GameObject> prefabSkins;
     
+    [Header("Final de Juego")]
+    [SerializeField] private GameObject menuVictoria;
+    [SerializeField] private Text TextoFinal;
 
 
 
     [Header("In-Game HUD")]
     [SerializeField] private GameObject inGameHUD;
     [SerializeField] RawImage[] heartsUI = new RawImage[3];
-
+    [SerializeField] private Text bajasJugador;
+    [SerializeField] private Text informacionBajas;
     #endregion
 
     #region Unity Event Functions
@@ -65,19 +73,44 @@ public class UIManager : MonoBehaviour
         preparado.onClick.AddListener(() => Jugar());
 
 
-        rosa.onClick.AddListener(() => SkinPersonaje());
-        verde.onClick.AddListener(() => SkinPersonaje());
-        naranja.onClick.AddListener(() => SkinPersonaje());
-        azul.onClick.AddListener(() => SkinPersonaje());
+       
+        verde.onClick.AddListener(() => SkinPersonaje(0));
+        azul.onClick.AddListener(() => SkinPersonaje(1));
+        rosa.onClick.AddListener(() => SkinPersonaje(2));
+        naranja.onClick.AddListener(() => SkinPersonaje(3));
+        
         ActivateMainMenu();
     }
 
     #endregion
 
     #region UI Related Methods
-    private void SkinPersonaje()
+    private void SkinPersonaje(int color)
     {
         //Aquí se pasaria por paramtro el color de la skin que se quiere para modificar luego el animator
+        if (color == 0)
+        {
+            gameManager.setSkin(prefabSkins[0]);
+            Debug.Log("Skin cambiada a verde");
+        } else if (color == 1)
+        {
+            gameManager.setSkin(prefabSkins[1]);
+            Debug.Log("Skin cambiada a azul");
+        } else if (color == 2)
+        {
+            gameManager.setSkin(prefabSkins[2]);
+            Debug.Log("Skin cambiada a rosa");
+        } else if (color == 3)
+        {
+            gameManager.setSkin(prefabSkins[3]);
+            Debug.Log("Skin cambiada a naranja");
+        }
+
+    }
+    private void FinPartida(string ganador)
+    {
+        menuVictoria.SetActive(true);
+        TextoFinal.text = ganador+" Os ha pegado una paliza";
 
     }
     private void Jugar()
@@ -94,6 +127,10 @@ public class UIManager : MonoBehaviour
 
         inGameHUD.SetActive(false);
     }
+    private void ActualizarBajas(int bajas)
+    {
+        bajasJugador.text = ""+bajas;
+    }
     //Activamos el menu
     private void MenuPersonalizacion()
     {
@@ -101,6 +138,13 @@ public class UIManager : MonoBehaviour
         mainMenu.SetActive(false);
         menuPersonalizacion.SetActive(true);
         
+    }
+    //En este metodo informaremos que jugador a matado a quien
+    private void ParteDeGuerra(string asesino, string muerto)
+    {
+
+        informacionBajas.text = " Ha matado a ";
+
     }
     private void ActivateInGameHUD()
     {
@@ -205,3 +249,5 @@ public class UIManager : MonoBehaviour
     #endregion
 
 }
+
+

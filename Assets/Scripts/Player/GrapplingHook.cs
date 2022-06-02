@@ -94,6 +94,7 @@ public class GrapplingHook : NetworkBehaviour
         {
             ClimbRope(input.y);
             UpdateRopeClientRpc();
+            ropeRenderer.SetPosition(0, playerTransform.position);
 
         }
         else if (player.State.Value == PlayerState.Grounded)
@@ -126,6 +127,8 @@ public class GrapplingHook : NetworkBehaviour
             ropeRenderer.SetPosition(1, anchor);
             UpdateAnchorClientRpc(hit.centroid);
             player.State.Value = PlayerState.Hooked;
+            rope.enabled = true;
+            ropeRenderer.enabled = true;
         }
     }
 
@@ -169,7 +172,7 @@ public class GrapplingHook : NetworkBehaviour
         else
         {
             Debug.DrawRay(playerTransform.position, direction, Color.red);
-            Debug.Log("NADA");
+            //Debug.Log("NADA");
         }
     }
 

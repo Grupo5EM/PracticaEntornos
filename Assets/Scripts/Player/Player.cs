@@ -7,14 +7,21 @@ using Unity.Netcode;
 public class Player : NetworkBehaviour
 {
     #region Variables
-    
+
     // https://docs-multiplayer.unity3d.com/netcode/current/basics/networkvariable
     public NetworkVariable<PlayerState> State;
+
+    public NetworkVariable<CharachterColor> characterColor;
+
     public NetworkVariable<int> vida;
     [SerializeField] private int playerID;
     public int PlayerID => playerID;
     private UIManager uiVida;
     public List<Transform> startPositions; 
+    //Variable para el modo DeatMatch
+    public int kills=0;
+    public List<Transform> startPositions;
+
 
     #endregion
 
@@ -22,11 +29,14 @@ public class Player : NetworkBehaviour
 
     private void Awake()
     {
+        Debug.Log("Despert?);
+        Debug.Log(IsLocalPlayer);
         NetworkManager.OnClientConnectedCallback += ConfigurePlayer;
 
         State = new NetworkVariable<PlayerState>();
         vida = new NetworkVariable<int>(0,NetworkVariableReadPermission.Everyone,NetworkVariableWritePermission.Server);
         uiVida = GameObject.Find("UIManager").GetComponent<UIManager>();
+
     }
 
     private void OnEnable()
@@ -39,7 +49,7 @@ public class Player : NetworkBehaviour
     private void OnDisable()
     {
         // https://docs-multiplayer.unity3d.com/netcode/current/api/Unity.Netcode.NetworkVariable-1.OnValueChangedDelegate
-        
+
 
         State.OnValueChanged -= OnPlayerStateValueChanged;
         vida.OnValueChanged -= OnPlayerLifeValueChanged;
@@ -49,16 +59,20 @@ public class Player : NetworkBehaviour
 
     #region Config Methods
 
-    void ConfigurePlayer(ulong clientID)
+    public void ConfigurePlayer(ulong clientID)
     {
+
+        Debug.Log("Se configura");
+        Debug.Log(IsLocalPlayer);
         if (IsLocalPlayer)
         {
-            print("se conecto jugador");
-            ConfigurePlayer();
-            //playerID = NetworkManager.Singleton.ConnectedClientsList.Count;
+            Debug.Log("Configura jugador");
+            ConfigureInitialPlayerState();
             ConfigureCamera();
             ConfigurePositions();
             ConfigureControls();
+            
+            
         }
 
         /*if (IsServer)
@@ -71,11 +85,15 @@ public class Player : NetworkBehaviour
         }*/
     }
 
-    void ConfigurePlayer()
+
+
+    void ConfigureInitialPlayerState()
     {
+
         UpdatePlayerStateServerRpc(PlayerState.Grounded);
         vida.Value = 0;
         uiVida.UpdateLifeUI(vida.Value);
+
     }
 
     void ConfigureCamera()
@@ -99,6 +117,8 @@ public class Player : NetworkBehaviour
         this.transform.position = startPositions[nextPosition].position;
     }
 
+ 
+
     #endregion
 
     #region RPC
@@ -114,21 +134,16 @@ public class Player : NetworkBehaviour
 
     [ServerRpc]
 
-    public void UpdatePlayerLifeServerRpc(int vida)
+    public void UpdateCharacterColorServerRpc(CharachterColor color)
     {
-        this.vida.Value=vida;
+        characterColor.Value = color;
     }
 
-
-    #endregion
-
-    #region ClientRPC
-
-    [ClientRpc]
-
-    public void UpdatePlayerLifeClientRpc(int vida)
+    [ServerRpc]
+    public void UpdatePlayerLifeServerRpc(int vida)
     {
-        
+
+        this.vida.Value += vida;
     }
 
     #endregion
@@ -140,10 +155,17 @@ public class Player : NetworkBehaviour
     // https://docs-multiplayer.unity3d.com/netcode/current/advanced-topics/message-system/serverrpc
     void OnPlayerStateValueChanged(PlayerState previous, PlayerState current)
     {
-        Debug.Log("Previo: " + previous + ", Actual: " + current); 
+        Debug.Log("Previo: " + previous + ", Actual: " + current);
         State.Value = current;
     }
 
+
+    void OnCharachterColorValueChanged(CharachterColor previous, CharachterColor current)
+    {
+        characterColor.Value = current;
+
+    }
+    
     void OnPlayerLifeValueChanged(int previous, int current)
     {
         vida.Value = current;
@@ -151,12 +173,18 @@ public class Player : NetworkBehaviour
             this.uiVida.UpdateLifeUI(vida.Value);
     }
 
-    #endregion
-}
+    public enum PlayerState
+    {
+        Grounded = 0,
+        Jumping = 1,
+        Hooked = 2
+    }
 
-public enum PlayerState
-{
-    Grounded = 0,
-    Jumping = 1,
-    Hooked = 2
+    public enum CharachterColor
+    {
+        Verde = 0,
+        Azul = 1,
+        Rosa = 2,
+        Naranja = 3
+    }
 }
