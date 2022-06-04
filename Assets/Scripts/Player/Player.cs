@@ -17,6 +17,7 @@ public class Player : NetworkBehaviour
 
     [SerializeField] private int playerID;
     public int PlayerID => playerID;
+
     [SerializeField] private UIManager uiVida;
     [SerializeField] GameManager gameManager;
 
@@ -24,9 +25,11 @@ public class Player : NetworkBehaviour
     [SerializeField] List<RuntimeAnimatorController> listSkins;
     [SerializeField] Text playerName;
 
-    public List<Transform> startPositions;
+
+    private UIManager uiVida;
+    public List<Transform> startPositions; 
     //Variable para el modo DeatMatch
-    public int kills = 0;
+    public int kills=0;
 
 
     #endregion
@@ -36,7 +39,7 @@ public class Player : NetworkBehaviour
     private void Awake()
     {
 
-        Debug.Log("Desperté");
+        Debug.Log("Despert?);
         Debug.Log(IsLocalPlayer);
         gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
         playerAnimator = GetComponent<Animator>();
@@ -44,8 +47,9 @@ public class Player : NetworkBehaviour
         NetworkManager.ConnectionApprovalCallback += StartPlayer;
         
         State = new NetworkVariable<PlayerState>();
+        
+        vida = new NetworkVariable<int>(0,NetworkVariableReadPermission.Everyone,NetworkVariableWritePermission.Server);
 
-        vida = new NetworkVariable<int> { Value = 0 };
         uiVida = GameObject.Find("UIManager").GetComponent<UIManager>();
 
     }
@@ -182,8 +186,8 @@ public class Player : NetworkBehaviour
     [ServerRpc]
     public void UpdatePlayerLifeServerRpc(int vida)
     {
-        this.vida.Value += vida;
 
+        this.vida.Value += vida;
     }
 
     [ServerRpc]
@@ -233,7 +237,8 @@ public class Player : NetworkBehaviour
     void OnPlayerLifeValueChanged(int previous, int current)
     {
         vida.Value = current;
-
+        if(!IsLocalPlayer)
+            this.uiVida.UpdateLifeUI(vida.Value);
     }
     #endregion
 }

@@ -404,10 +404,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   State:
     m_InternalValue: 0
+
   vida:
     m_InternalValue: 0
   playerID: 0
   uiVida: {fileID: 0}
+  
   gameManager: {fileID: 0}
   listSkins:
   - {fileID: 9100000, guid: e0d7adc8be511a14dbdab77d72cda5fb, type: 2}
@@ -415,6 +417,7 @@ MonoBehaviour:
   - {fileID: 9100000, guid: 479dd0d64371b2e4496d5a8cfbb47b8c, type: 2}
   - {fileID: 9100000, guid: f79b5ca4e14bbcd448454334388dc085, type: 2}
   playerName: {fileID: 1620394804763630380}
+
   startPositions:
   - {fileID: 2364838769126004091, guid: bf1c45d35740ef74faf5e681c95e35ab, type: 3}
   - {fileID: 552170597596643432, guid: 908f96668a73a34449bd4ee7272b36fe, type: 3}
