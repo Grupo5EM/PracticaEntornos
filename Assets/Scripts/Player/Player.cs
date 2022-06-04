@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using Cinemachine;
 using Unity.Netcode;
+using UnityEngine.UI;
+using System;
+
 
 public class Player : NetworkBehaviour
 {
@@ -10,19 +13,20 @@ public class Player : NetworkBehaviour
 
     // https://docs-multiplayer.unity3d.com/netcode/current/basics/networkvariable
     public NetworkVariable<PlayerState> State;
-
-    public NetworkVariable<CharachterColor> characterColor;
-
     public NetworkVariable<int> vida;
+
     [SerializeField] private int playerID;
     public int PlayerID => playerID;
     [SerializeField] private UIManager uiVida;
+    [SerializeField] GameManager gameManager;
 
-    [SerializeField] GameObject playerPrefab;
-    public List<Transform> startPositions; 
-    //Variable para el modo DeatMatch
-    public int kills=0;
+    Animator playerAnimator;
+    [SerializeField] List<RuntimeAnimatorController> listSkins;
+    [SerializeField] Text playerName;
+
     public List<Transform> startPositions;
+    //Variable para el modo DeatMatch
+    public int kills = 0;
 
 
     #endregion
@@ -31,18 +35,22 @@ public class Player : NetworkBehaviour
 
     private void Awake()
     {
-        Debug.Log("Despert?);
+
+        Debug.Log("Desperté");
         Debug.Log(IsLocalPlayer);
+        gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
+        playerAnimator = GetComponent<Animator>();
         NetworkManager.OnClientConnectedCallback += ConfigurePlayer;
-
+        NetworkManager.ConnectionApprovalCallback += StartPlayer;
+        
         State = new NetworkVariable<PlayerState>();
-
-        characterColor = new NetworkVariable<CharachterColor>();
 
         vida = new NetworkVariable<int> { Value = 0 };
         uiVida = GameObject.Find("UIManager").GetComponent<UIManager>();
 
     }
+
+    
 
     private void OnEnable()
     {
@@ -76,9 +84,11 @@ public class Player : NetworkBehaviour
             ConfigureCamera();
             ConfigurePositions();
             ConfigureControls();
-            
+        } else
+        {
             
         }
+
 
         /*if (IsServer)
         {
@@ -90,11 +100,43 @@ public class Player : NetworkBehaviour
         }*/
     }
 
+    private void StartPlayer(byte[] arg1, ulong arg2, NetworkManager.ConnectionApprovedDelegate arg3)
+    {
+        ConfigureCamera();
+        ConfigurePositions();
+        ConfigureControls();
+    }
 
+    public void StartPlayerNoCallback()
+    {
+        ConfigureCamera();
+        ConfigurePositions();
+        ConfigureControls();
+    }
+
+    void ConfigureSkin()
+    {
+        int skinID = gameManager.checkSkin();
+        playerAnimator.runtimeAnimatorController = listSkins[skinID];
+        ConfigureSkinServerRpc(skinID);
+    }
+
+    void ConfigureName()
+    {
+        var newName = gameManager.checkName();
+        if (newName != null)
+        {
+            playerName.text = newName.text;
+            ConfigureNameServerRpc(newName.text);
+
+        }
+        
+    }
 
     void ConfigureInitialPlayerState()
     {
-
+        ConfigureSkin();
+        ConfigureName();
         UpdatePlayerStateServerRpc(PlayerState.Grounded);
         vida.Value = 0;
         uiVida.UpdateLifeUI(vida.Value);
@@ -117,12 +159,12 @@ public class Player : NetworkBehaviour
 
     void ConfigurePositions()
     {
-        int nextPosition = Random.Range(0, startPositions.Count);
+        int nextPosition = UnityEngine.Random.Range(0, startPositions.Count);
         Debug.Log("Spawn: " + nextPosition);
         this.transform.position = startPositions[nextPosition].position;
     }
 
- 
+
 
     #endregion
 
@@ -138,18 +180,42 @@ public class Player : NetworkBehaviour
     }
 
     [ServerRpc]
-
-    public void UpdateCharacterColorServerRpc(CharachterColor color)
-    {
-        characterColor.Value = color;
-    }
-
-    [ServerRpc]
     public void UpdatePlayerLifeServerRpc(int vida)
     {
         this.vida.Value += vida;
 
     }
+
+    [ServerRpc]
+    public void ConfigureSkinServerRpc(int skinID)
+    {
+        playerAnimator.runtimeAnimatorController = listSkins[skinID];
+        ConfigureSkinClientRpc(skinID);
+    }
+
+    [ServerRpc]
+    public void ConfigureNameServerRpc(string clientName)
+    {
+        playerName.text = clientName;
+        ConfigureNameClientRpc(clientName);
+    }
+
+    #endregion
+
+
+    #region ClientRPC
+
+    [ClientRpc]
+    public void ConfigureSkinClientRpc(int skinID)
+    {
+        playerAnimator.runtimeAnimatorController = listSkins[skinID];
+    }
+    [ClientRpc]
+    public void ConfigureNameClientRpc(string serverName)
+    {
+        playerName.text = serverName;
+    }
+
 
     #endregion
 
@@ -164,19 +230,13 @@ public class Player : NetworkBehaviour
         State.Value = current;
     }
 
-
-    void OnCharachterColorValueChanged(CharachterColor previous, CharachterColor current)
-    {
-        characterColor.Value = current;
-
-    }
-    
     void OnPlayerLifeValueChanged(int previous, int current)
     {
         vida.Value = current;
 
     }
-
+    #endregion
+}
     public enum PlayerState
     {
         Grounded = 0,
@@ -184,11 +244,3 @@ public class Player : NetworkBehaviour
         Hooked = 2
     }
 
-    public enum CharachterColor
-    {
-        Verde = 0,
-        Azul = 1,
-        Rosa = 2,
-        Naranja = 3
-    }
-}

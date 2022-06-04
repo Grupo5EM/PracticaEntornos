@@ -14,6 +14,7 @@ public class UIManager : MonoBehaviour
     UnityTransport transport;
     readonly ushort port = 7777;
     [SerializeField] private PlayerController playerController;
+    [SerializeField] private Player playerScript;
     [SerializeField] Sprite[] hearts = new Sprite[3];
 
     [Header("Main Menu")]
@@ -34,10 +35,14 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Button verde;
     [SerializeField] private Button naranja;
     [SerializeField] private Button azul;
+    [SerializeField] private Button changeNameButton;
     [SerializeField] public  Button preparado;
 
     [SerializeField] private GameManager gameManager;
-    [SerializeField] List<GameObject> prefabSkins;
+    [SerializeField] List<RuntimeAnimatorController> prefabSkins;
+    [SerializeField] GameObject player;
+
+    
     
     [Header("Final de Juego")]
     [SerializeField] private GameObject menuVictoria;
@@ -70,16 +75,17 @@ public class UIManager : MonoBehaviour
         buttonHost.onClick.AddListener(() => StartHost());
         buttonClient.onClick.AddListener(() => StartClient());
         buttonServer.onClick.AddListener(() => StartServer());
-        preparado.onClick.AddListener(() => Jugar());
+        changeNameButton.onClick.AddListener(() => ChangeName());
+        
 
-
-       
         verde.onClick.AddListener(() => SkinPersonaje(0));
         azul.onClick.AddListener(() => SkinPersonaje(1));
         rosa.onClick.AddListener(() => SkinPersonaje(2));
         naranja.onClick.AddListener(() => SkinPersonaje(3));
         
         ActivateMainMenu();
+        FindPlayer();
+        
     }
 
     #endregion
@@ -87,23 +93,28 @@ public class UIManager : MonoBehaviour
     #region UI Related Methods
     private void SkinPersonaje(int color)
     {
+        FindPlayer();
         //Aquí se pasaria por paramtro el color de la skin que se quiere para modificar luego el animator
         if (color == 0)
-        {
-            gameManager.setSkin(prefabSkins[0]);
+        {          
+            //playerController.anim.runtimeAnimatorController = prefabSkins[0];
+            gameManager.setSkinID(0);
             Debug.Log("Skin cambiada a verde");
         } else if (color == 1)
-        {
-            gameManager.setSkin(prefabSkins[1]);
+        {            
+            //playerController.anim.runtimeAnimatorController = prefabSkins[1];
+            gameManager.setSkinID(1);
             Debug.Log("Skin cambiada a azul");
         } else if (color == 2)
-        {
-            gameManager.setSkin(prefabSkins[2]);
+        {           
+            //playerController.anim.runtimeAnimatorController = prefabSkins[2];
+            gameManager.setSkinID(2);
             Debug.Log("Skin cambiada a rosa");
         } else if (color == 3)
-        {
-            gameManager.setSkin(prefabSkins[3]);
-            Debug.Log("Skin cambiada a naranja");
+        {           
+            //playerController.anim.runtimeAnimatorController = prefabSkins[3];
+            gameManager.setSkinID(3);
+            Debug.Log("Skin cambiada a naranja");            
         }
 
     }
@@ -113,10 +124,23 @@ public class UIManager : MonoBehaviour
         TextoFinal.text = ganador+" Os ha pegado una paliza";
 
     }
-    private void Jugar()
+    private void JugarHost()
     {
+        //playerScript = player.GetComponent<Player>();
         NetworkManager.Singleton.StartHost();
         ActivateInGameHUD();
+        //playerScript.StartPlayerNoCallback();
+        mainMenu.SetActive(false);
+        menuPersonalizacion.SetActive(false);
+        inGameHUD.SetActive(true);
+    }
+
+    private void JugarClient()
+    {
+        //playerScript = player.GetComponent<Player>();
+        NetworkManager.Singleton.StartClient();
+        ActivateInGameHUD();
+        //playerScript.StartPlayerNoCallback();
         mainMenu.SetActive(false);
         menuPersonalizacion.SetActive(false);
         inGameHUD.SetActive(true);
@@ -192,6 +216,14 @@ public class UIManager : MonoBehaviour
         }
     }
 
+
+    public void ChangeName()
+    {
+        FindPlayer();
+        gameManager.setName(nombreUsuario.textComponent);
+        
+    }
+
     #endregion
 
     #region Netcode Related Methods
@@ -200,7 +232,10 @@ public class UIManager : MonoBehaviour
     {
         mainMenu.SetActive(false);
         menuPersonalizacion.SetActive(true);
-        //NetworkManager.Singleton.StartHost();
+        //NetworkManager.Singleton.StartHost();        
+        preparado.onClick.AddListener(JugarHost);
+        FindPlayer();
+
         //ActivateInGameHUD();
     }
     //Con estos metodos establecemos la sincronización de los jugadores con el botón listo
@@ -235,17 +270,38 @@ public class UIManager : MonoBehaviour
 
         }
 
-        NetworkManager.Singleton.StartClient();
-
-        ActivateInGameHUD();
+        mainMenu.SetActive(false);
+        menuPersonalizacion.SetActive(true);
+        //NetworkManager.Singleton.StartClient();
+        preparado.onClick.AddListener(JugarClient);
+        FindPlayer();
+        
 
     }
     private void StartServer()
     {
         NetworkManager.Singleton.StartServer();
         ActivateInGameHUD();
+       
     }
 
+
+    private void FindPlayer()
+    {
+        player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+        {
+            playerController = player.GetComponent<PlayerController>();
+            playerScript = player.GetComponent<Player>();
+
+            if (!playerScript.IsLocalPlayer)
+            {
+                playerController = null;
+                playerScript = null;
+                player = null;
+            }
+        }
+    }
     #endregion
 
 }
