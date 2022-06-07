@@ -8,14 +8,13 @@ public class GrapplingHook : NetworkBehaviour
     InputHandler handler;
     // https://docs.unity3d.com/2020.3/Documentation/ScriptReference/DistanceJoint2D.html
     DistanceJoint2D rope;
-
     // // https://docs.unity3d.com/2020.3/Documentation/ScriptReference/LineRenderer.html
     LineRenderer ropeRenderer;
     Transform playerTransform;
     [SerializeField] Material material;
     // https://docs.unity3d.com/2020.3/Documentation/ScriptReference/LayerMask.html
     LayerMask layer;
-    NetworkVariable<LayerMask> layerPlayer;
+
     Player player;
 
     readonly float climbSpeed = 2f;
@@ -48,9 +47,10 @@ public class GrapplingHook : NetworkBehaviour
         rope.enableCollision = true;
         rope.enabled = false;
 
+        
+
         playerTransform = transform;
         layer = LayerMask.GetMask("Obstacles");
-        layerPlayer = new NetworkVariable<LayerMask>(LayerMask.GetMask("Player"));
 
         rb = GetComponent<Rigidbody2D>();
         player = GetComponent<Player>();
@@ -61,22 +61,18 @@ public class GrapplingHook : NetworkBehaviour
     private void OnEnable()
     {
         handler.OnHookRender.AddListener(UpdateHookServerRpc);
-        //handler.OnHookRender.AddListener(UpdateBulletServerRpc);
         handler.OnMoveFixedUpdate.AddListener(SwingRopeServerRpc);
         handler.OnJump.AddListener(JumpPerformedServerRpc);
         handler.OnHook.AddListener(LaunchHookServerRpc);
-        handler.OnFire.AddListener(ShootWeaponServerRpc);
         ropeDistance.OnValueChanged += OnRopeDistanceValueChanged;
     }
 
     private void OnDisable()
     {
         handler.OnHookRender.RemoveListener(UpdateHookServerRpc);
-        //handler.OnHookRender.RemoveListener(UpdateBulletServerRpc);
         handler.OnMoveFixedUpdate.RemoveListener(SwingRopeServerRpc);
         handler.OnJump.RemoveListener(JumpPerformedServerRpc);
         handler.OnHook.RemoveListener(LaunchHookServerRpc);
-        handler.OnFire.RemoveListener(ShootWeaponServerRpc);
         ropeDistance.OnValueChanged -= OnRopeDistanceValueChanged;
     }
 
@@ -90,21 +86,19 @@ public class GrapplingHook : NetworkBehaviour
     [ServerRpc]
     void UpdateHookServerRpc(Vector2 input)
     {
-        if (player.State.Value == PlayerState.Hooked)
+        if (player.State.Value == Player.PlayerState.Hooked)
         {
             ClimbRope(input.y);
             UpdateRopeClientRpc();
-            ropeRenderer.SetPosition(0, playerTransform.position);
-
+            ropeRenderer.enabled = false;
         }
-        else if (player.State.Value == PlayerState.Grounded)
+        else if (player.State.Value == Player.PlayerState.Grounded)
         {
             RemoveRopeClientRpc();
             rope.enabled = false;
             ropeRenderer.enabled = false;
         }
     }
-
     // https://docs-multiplayer.unity3d.com/netcode/current/advanced-topics/message-system/serverrpc
     [ServerRpc]
     void JumpPerformedServerRpc()
@@ -126,9 +120,7 @@ public class GrapplingHook : NetworkBehaviour
             rope.connectedAnchor = anchor;
             ropeRenderer.SetPosition(1, anchor);
             UpdateAnchorClientRpc(hit.centroid);
-            player.State.Value = PlayerState.Hooked;
-            rope.enabled = true;
-            ropeRenderer.enabled = true;
+            player.State.Value = Player.PlayerState.Hooked;
         }
     }
 
@@ -136,7 +128,7 @@ public class GrapplingHook : NetworkBehaviour
     [ServerRpc]
     void SwingRopeServerRpc(Vector2 input)
     {
-        if (player.State.Value == PlayerState.Hooked)
+        if (player.State.Value == Player.PlayerState.Hooked)
         {
             // Player 2 hook direction
             var direction = (rope.connectedAnchor - (Vector2)playerTransform.position).normalized;
@@ -151,31 +143,6 @@ public class GrapplingHook : NetworkBehaviour
     }
 
     
-
-    [ServerRpc]
-
-    void ShootWeaponServerRpc(Vector2 input, int playerShooting)
-    {
-        var direction = (input - (Vector2)playerTransform.position).normalized;
-        RaycastHit2D[] hits = Physics2D.RaycastAll(playerTransform.position, direction);
-        
-        if (hits[1].collider.gameObject.GetComponent<CapsuleCollider2D>())
-        {
-            Debug.DrawRay(playerTransform.position, direction, Color.green);
-            var anchor = hits[1].centroid;
-            ropeRenderer.SetPosition(1, anchor);
-            //UpdateBulletClientRpc(hits[1].centroid);
-            Player hiteao = hits[1].collider.gameObject.GetComponent<Player>();
-            hiteao.vida.Value += 1; 
-            
-        }
-        else
-        {
-            Debug.DrawRay(playerTransform.position, direction, Color.red);
-            //Debug.Log("NADA");
-        }
-    }
-
     #endregion
 
     #region ClientRPC
@@ -212,17 +179,6 @@ public class GrapplingHook : NetworkBehaviour
         ropeRenderer.enabled = false;
     }
 
-
-    [ClientRpc]
-    void UpdateVidaClientRpc(int hiteaoID, int vida)
-    {
-        NetworkClient hiteaoClient;
-        Player hiteaoAux;
-        NetworkManager.ConnectedClients.TryGetValue((ulong)hiteaoID, out hiteaoClient);
-        hiteaoClient.PlayerObject.TryGetComponent<Player>( out hiteaoAux);
-        hiteaoAux.UpdatePlayerLifeServerRpc(vida);
-    }
-
     #endregion
 
     #endregion
@@ -241,3 +197,4 @@ public class GrapplingHook : NetworkBehaviour
 
     #endregion
 }
+

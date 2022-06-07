@@ -16,11 +16,10 @@ public class Player : NetworkBehaviour
     public NetworkVariable<int> vida;
     [SerializeField] private int playerID;
     public int PlayerID => playerID;
-    private UIManager uiVida;
+    public UIManager uiVida;
     public List<Transform> startPositions; 
     //Variable para el modo DeatMatch
     public int kills=0;
-    public List<Transform> startPositions;
 
 
     #endregion
@@ -29,7 +28,7 @@ public class Player : NetworkBehaviour
 
     private void Awake()
     {
-        Debug.Log("Despert?);
+        Debug.Log("Despert");
         Debug.Log(IsLocalPlayer);
         NetworkManager.OnClientConnectedCallback += ConfigurePlayer;
 
@@ -143,7 +142,14 @@ public class Player : NetworkBehaviour
     public void UpdatePlayerLifeServerRpc(int vida)
     {
 
-        this.vida.Value += vida;
+        this.vida.Value = vida;
+    }
+
+    [ClientRpc]
+    public void UpdateVidaClientRpc(ClientRpcParams clientRpcParams=default)
+    {
+        //this.vida.Value = this.vida.Value+1;
+        this.uiVida.UpdateLifeUI(this.vida.Value);
     }
 
     #endregion
@@ -169,8 +175,7 @@ public class Player : NetworkBehaviour
     void OnPlayerLifeValueChanged(int previous, int current)
     {
         vida.Value = current;
-        if(!IsLocalPlayer)
-            this.uiVida.UpdateLifeUI(vida.Value);
+        //this.uiVida.UpdateLifeUI(this.vida.Value);
     }
 
     public enum PlayerState
@@ -187,4 +192,5 @@ public class Player : NetworkBehaviour
         Rosa = 2,
         Naranja = 3
     }
+    #endregion
 }

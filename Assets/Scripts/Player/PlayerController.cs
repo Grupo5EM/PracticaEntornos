@@ -123,7 +123,7 @@ public class PlayerController : NetworkBehaviour
     {
 
         //Se ejecuta cada vez que presionas la tecla de salto 
-        if (player.State.Value == PlayerState.Grounded)
+        if (player.State.Value == Player.PlayerState.Grounded)
         {
             //Si detecta estar en el suelo, resetea el número de saltos
             _jumpsLeft = maxJumps;           
@@ -137,7 +137,7 @@ public class PlayerController : NetworkBehaviour
         Debug.Log("Pre-Salto: " + _jumpsLeft + ", estado del jugador: " + player.State.Value);
         
         //Cambia al estado de Jumping
-        player.State.Value = PlayerState.Jumping; 
+        player.State.Value = Player.PlayerState.Jumping; 
         anim.SetBool("isJumping", true);
         rb.velocity = new Vector2(rb.velocity.x, jumpHeight);
         //Y le resta el número de saltos
@@ -157,7 +157,7 @@ public class PlayerController : NetworkBehaviour
         if (IsGrounded)
         {                   
             //...actualiza la variable y pasa de Jumping a Grounded
-            player.State.Value = PlayerState.Grounded;
+            player.State.Value = Player.PlayerState.Grounded;
             if (_jumpsLeft == 0)
             {
                 _jumpsLeft = maxJumps;
@@ -165,12 +165,12 @@ public class PlayerController : NetworkBehaviour
             //Ahora el Jump no se vuelve a ejecutar hasta que pulsemos el salto
         }
 
-        if (!IsGrounded && player.State.Value != PlayerState.Hooked)
+        if (!IsGrounded && player.State.Value != Player.PlayerState.Hooked)
         {
-            player.State.Value = PlayerState.Jumping;
+            player.State.Value = Player.PlayerState.Jumping;
         }
 
-        if ((player.State.Value != PlayerState.Hooked))
+        if ((player.State.Value != Player.PlayerState.Hooked))
         {
             
             rb.velocity = new Vector2(input.x * speed, rb.velocity.y);
