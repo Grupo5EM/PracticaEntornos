@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Unity.Netcode;
+using UnityEngine.UI;
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(CapsuleCollider2D))]
@@ -26,7 +27,8 @@ public class PlayerController : NetworkBehaviour
     Player player;
     Rigidbody2D rb;
     new CapsuleCollider2D collider;
-    Animator anim;
+    public Animator anim;
+    public Text playerName;
     SpriteRenderer spriteRenderer;
     bool isJumping;
 

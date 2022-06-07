@@ -26,6 +26,7 @@ public class InputHandler : NetworkBehaviour
 
     Vector2 CachedMoveInput { get; set; }
 
+   
     #endregion
 
     #region Unity Event Functions
@@ -78,7 +79,7 @@ public class InputHandler : NetworkBehaviour
 
             // https://docs.unity3d.com/2020.3/Documentation/ScriptReference/Camera.ScreenToWorldPoint.html
             var screenPoint = Camera.main.ScreenToWorldPoint(mousePosition);
-            if (hookPerformed) { Hook(screenPoint); }
+            if (hookPerformed) { Hook(screenPoint); }          
             
           //Como la tecla espacio ha sido presionada, se ejecuta el salto y por tanto su m?odo
 

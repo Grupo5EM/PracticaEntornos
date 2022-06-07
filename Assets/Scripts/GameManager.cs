@@ -2,12 +2,17 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
+using UnityEngine.UI;
 using System;
+
 
 public class GameManager : MonoBehaviour
 {
     [SerializeField] NetworkManager networkManager;
     [SerializeField] GameObject playerPrefab;
+    [SerializeField] int skinID;
+    [SerializeField] Text playerName;
+    int connectedPlayers;
     private void OnEnable()
     {
         //networkManager.OnClientConnectedCallback += OnClientConnected;
@@ -23,7 +28,7 @@ public class GameManager : MonoBehaviour
     }
 
 
-    private void OnClientConnected(ulong clientID)
+    /*private void OnClientConnected(ulong clientID)
     {
         if (networkManager.IsServer)
         {
@@ -32,15 +37,30 @@ public class GameManager : MonoBehaviour
             
         }
         
-    }
+    } */
 
-    public void setSkin(GameObject skin)
+    public void setSkinID(int skin)
     {
-        playerPrefab = skin;
+        skinID = skin;
     }
 
+    public int checkSkin()
+    {
+        return skinID;
+    }
 
+    public void setName(Text newName)
+    {
+        playerName = newName;
+    }
 
+    public Text checkName()
+    {
+        return playerName;
+    }
 
-    
+    public void connectionManager() 
+    {
+        
+    }
 }
