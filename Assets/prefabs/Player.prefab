@@ -366,6 +366,7 @@ GameObject:
   - component: {fileID: 2569724402085557493}
   - component: {fileID: 527013784210057118}
   - component: {fileID: 418801855643455155}
+  - component: {fileID: -6562319883845574764}
   m_Layer: 3
   m_Name: Player
   m_TagString: Player
@@ -404,6 +405,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   State:
     m_InternalValue: 0
+
+  characterColor:
+    m_InternalValue: 0
+
   vida:
     m_InternalValue: 0
   idSkin:
@@ -479,6 +484,8 @@ MonoBehaviour:
         byte0061: 0
   playerID: 0
   uiVida: {fileID: 0}
+
+
   gameManager: {fileID: 0}
   listSkins:
   - {fileID: 9100000, guid: e0d7adc8be511a14dbdab77d72cda5fb, type: 2}
@@ -486,8 +493,11 @@ MonoBehaviour:
   - {fileID: 9100000, guid: 479dd0d64371b2e4496d5a8cfbb47b8c, type: 2}
   - {fileID: 9100000, guid: f79b5ca4e14bbcd448454334388dc085, type: 2}
   playerName: {fileID: 1620394804763630380}
+
   isConnected: 0
   isReady: 0
+
+
   startPositions:
   - {fileID: 2364838769126004091, guid: bf1c45d35740ef74faf5e681c95e35ab, type: 3}
   - {fileID: 552170597596643432, guid: 908f96668a73a34449bd4ee7272b36fe, type: 3}
@@ -598,6 +608,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f6e6c65243d1b4949a40b6704489359d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+
   anim: {fileID: 0}
   playerName: {fileID: 1620394804763630380}
 --- !u!114 &8835148374866897493
@@ -789,3 +800,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Animator: {fileID: 528230145}
+--- !u!114 &-6562319883845574764
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5644749167613886767}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9437e589c8dab540a43ced97053020b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  material: {fileID: 2100000, guid: c636fd2bad8a2a64490da5c38c70d6fa, type: 2}

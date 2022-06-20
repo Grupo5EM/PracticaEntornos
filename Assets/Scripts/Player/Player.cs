@@ -19,6 +19,7 @@ public class Player : NetworkBehaviour
 
     [SerializeField] public ulong playerID;   
 
+
     [SerializeField] private UIManager uiVida;
     [SerializeField] GameManager gameManager;
 
@@ -41,7 +42,6 @@ public class Player : NetworkBehaviour
     private void Awake()
     {
 
-        Debug.Log("Desperté");
         Debug.Log(IsLocalPlayer);
         gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
         playerAnimator = GetComponent<Animator>();
@@ -180,7 +180,14 @@ public class Player : NetworkBehaviour
     public void UpdatePlayerLifeServerRpc(int vida)
     {
 
-        this.vida.Value += vida;
+        this.vida.Value = vida;
+    }
+
+    [ClientRpc]
+    public void UpdateVidaClientRpc(ClientRpcParams clientRpcParams=default)
+    {
+        //this.vida.Value = this.vida.Value+1;
+        this.uiVida.UpdateLifeUI(this.vida.Value);
     }
 
     [ServerRpc]
@@ -230,8 +237,7 @@ public class Player : NetworkBehaviour
     void OnPlayerLifeValueChanged(int previous, int current)
     {
         vida.Value = current;
-        if(!IsLocalPlayer)
-            this.uiVida.UpdateLifeUI(vida.Value);
+        //this.uiVida.UpdateLifeUI(this.vida.Value);
     }
 
     void OnIDSkinValueChanged(int previous, int current)
@@ -247,4 +253,5 @@ public class Player : NetworkBehaviour
         Jumping = 1,
         Hooked = 2
     }
+
 
