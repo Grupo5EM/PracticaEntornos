@@ -5,7 +5,7 @@ using Cinemachine;
 using Unity.Netcode;
 using UnityEngine.UI;
 using System;
-
+using Unity.Collections;
 
 public class Player : NetworkBehaviour
 {
@@ -14,9 +14,10 @@ public class Player : NetworkBehaviour
     // https://docs-multiplayer.unity3d.com/netcode/current/basics/networkvariable
     public NetworkVariable<PlayerState> State;
     public NetworkVariable<int> vida;
+    public NetworkVariable<int> idSkin;
+    public NetworkVariable<FixedString64Bytes> playerNameValue;
 
-    [SerializeField] private int playerID;
-    public int PlayerID => playerID;
+    [SerializeField] public ulong playerID;   
 
     [SerializeField] private UIManager uiVida;
     [SerializeField] GameManager gameManager;
@@ -24,9 +25,10 @@ public class Player : NetworkBehaviour
     Animator playerAnimator;
     [SerializeField] List<RuntimeAnimatorController> listSkins;
     [SerializeField] Text playerName;
+    public bool isConnected = false;
+    public bool isReady = false;
 
 
-    private UIManager uiVida;
     public List<Transform> startPositions; 
     //Variable para el modo DeatMatch
     public int kills=0;
@@ -39,12 +41,12 @@ public class Player : NetworkBehaviour
     private void Awake()
     {
 
-        Debug.Log("Despert?);
+        Debug.Log("Desperté");
         Debug.Log(IsLocalPlayer);
         gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
         playerAnimator = GetComponent<Animator>();
         NetworkManager.OnClientConnectedCallback += ConfigurePlayer;
-        NetworkManager.ConnectionApprovalCallback += StartPlayer;
+        //NetworkManager.ConnectionApprovalCallback += StartPlayer;
         
         State = new NetworkVariable<PlayerState>();
         
@@ -61,15 +63,17 @@ public class Player : NetworkBehaviour
         // https://docs-multiplayer.unity3d.com/netcode/current/api/Unity.Netcode.NetworkVariable-1.OnValueChangedDelegate
         State.OnValueChanged += OnPlayerStateValueChanged;
         vida.OnValueChanged += OnPlayerLifeValueChanged;
+        idSkin.OnValueChanged += OnIDSkinValueChanged;
     }
 
     private void OnDisable()
-    {
+      {
         // https://docs-multiplayer.unity3d.com/netcode/current/api/Unity.Netcode.NetworkVariable-1.OnValueChangedDelegate
 
 
         State.OnValueChanged -= OnPlayerStateValueChanged;
         vida.OnValueChanged -= OnPlayerLifeValueChanged;
+        idSkin.OnValueChanged = OnIDSkinValueChanged;
     }
 
     #endregion
@@ -78,16 +82,15 @@ public class Player : NetworkBehaviour
 
     public void ConfigurePlayer(ulong clientID)
     {
-
-        Debug.Log("Se configura");
-        Debug.Log(IsLocalPlayer);
+        
         if (IsLocalPlayer)
-        {
-            Debug.Log("Configura jugador");
+        {            
             ConfigureInitialPlayerState();
             ConfigureCamera();
             ConfigurePositions();
             ConfigureControls();
+            playerID = clientID;
+            
         } else
         {
             
@@ -104,18 +107,13 @@ public class Player : NetworkBehaviour
         }*/
     }
 
-    private void StartPlayer(byte[] arg1, ulong arg2, NetworkManager.ConnectionApprovedDelegate arg3)
-    {
-        ConfigureCamera();
-        ConfigurePositions();
-        ConfigureControls();
-    }
+   
 
-    public void StartPlayerNoCallback()
+    public void StartMatchPlayer()
     {
-        ConfigureCamera();
         ConfigurePositions();
-        ConfigureControls();
+        //ConfigureSkin();
+        //ConfigureName();
     }
 
     void ConfigureSkin()
@@ -128,13 +126,8 @@ public class Player : NetworkBehaviour
     void ConfigureName()
     {
         var newName = gameManager.checkName();
-        if (newName != null)
-        {
-            playerName.text = newName.text;
-            ConfigureNameServerRpc(newName.text);
-
-        }
-        
+        playerName.text = newName.text;
+        ConfigureNameServerRpc(newName.text);        
     }
 
     void ConfigureInitialPlayerState()
@@ -240,8 +233,14 @@ public class Player : NetworkBehaviour
         if(!IsLocalPlayer)
             this.uiVida.UpdateLifeUI(vida.Value);
     }
+
+    void OnIDSkinValueChanged(int previous, int current)
+    {
+        idSkin.Value = current;
+    }
     #endregion
 }
+    
     public enum PlayerState
     {
         Grounded = 0,

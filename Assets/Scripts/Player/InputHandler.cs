@@ -14,6 +14,7 @@ public class InputHandler : NetworkBehaviour
     [SerializeField] InputAction _hook;
     [SerializeField] InputAction _fire;
     [SerializeField] InputAction _mousePosition;
+    [SerializeField] InputAction _ready;
 
     // https://docs.unity3d.com/ScriptReference/Events.UnityEvent.html
     public UnityEvent<Vector2> OnMove;
@@ -22,6 +23,7 @@ public class InputHandler : NetworkBehaviour
     public UnityEvent<Vector2> OnHook;
     public UnityEvent<Vector2> OnHookRender;
     public UnityEvent OnJump;
+    public UnityEvent OnReady;
     public UnityEvent<Vector2, int> OnFire;
 
     Vector2 CachedMoveInput { get; set; }
@@ -40,6 +42,7 @@ public class InputHandler : NetworkBehaviour
             .With("Right", "<Keyboard>/d");
 
         _jump.AddBinding("<Keyboard>/space");
+        _ready.AddBinding("<Keyboard>/r");
         _hook.AddBinding("<Mouse>/rightButton");
         _fire.AddBinding("<Mouse>/leftButton");
         _mousePosition.AddBinding("<Mouse>/position");
@@ -51,6 +54,7 @@ public class InputHandler : NetworkBehaviour
         _jump.Enable();
         _hook.Enable();
         _fire.Enable();
+        _ready.Enable();
         _mousePosition.Enable();
     }
 
@@ -60,6 +64,7 @@ public class InputHandler : NetworkBehaviour
         _jump.Disable();
         _hook.Disable();
         _fire.Disable();
+        _ready.Disable();
         _mousePosition.Disable();
     }
 
@@ -73,6 +78,7 @@ public class InputHandler : NetworkBehaviour
 
             var hookPerformed = _hook.WasPerformedThisFrame();
             var jumpPerformed = _jump.WasPerformedThisFrame();
+            var readyPerformed = _ready.WasPerformedThisFrame();
 
             Move(CachedMoveInput);
             MousePosition(mousePosition);
@@ -82,8 +88,8 @@ public class InputHandler : NetworkBehaviour
             if (hookPerformed) { Hook(screenPoint); }          
             
           //Como la tecla espacio ha sido presionada, se ejecuta el salto y por tanto su m?odo
-
-            if (jumpPerformed) { Jump(); }
+            if (readyPerformed) { Debug.Log("Ready ha sido performed"); Ready();  }
+            if (jumpPerformed) {  Jump(); }
             if (_fire.WasPerformedThisFrame()) { Fire(screenPoint, (int)OwnerClientId); }
 
             HookRender(CachedMoveInput);
@@ -134,6 +140,12 @@ public class InputHandler : NetworkBehaviour
     void MousePosition(Vector2 input)
     {
         OnMousePosition?.Invoke(input);
+    }
+
+    void Ready()
+    {
+        Debug.Log("Pressed ready");
+        OnReady?.Invoke();
     }
 
     #endregion
