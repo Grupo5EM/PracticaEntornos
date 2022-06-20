@@ -118,7 +118,12 @@ public class PlayerController : NetworkBehaviour
     [ServerRpc]
     void PerformJumpServerRpc()
     {
+<<<<<<< Updated upstream
       
+=======
+
+        //Se ejecuta cada vez que presionas la tecla de salto 
+>>>>>>> Stashed changes
         if (player.State.Value == PlayerState.Grounded)
         {
             _jumpsLeft = maxJumps;
@@ -127,10 +132,16 @@ public class PlayerController : NetworkBehaviour
         else if (_jumpsLeft == 0)
         {
             return;
+<<<<<<< Updated upstream
         }
 
         Debug.Log("Pre-Salto: " + _jumpsLeft + ", estado del jugador: " + player.State.Value);
  
+=======
+        }        
+        
+        //Cambia al estado de Jumping
+>>>>>>> Stashed changes
         player.State.Value = PlayerState.Jumping; 
         anim.SetBool("isJumping", true);
         rb.velocity = new Vector2(rb.velocity.x, jumpHeight);
@@ -146,11 +157,25 @@ public class PlayerController : NetworkBehaviour
     void UpdatePlayerPositionServerRpc(Vector2 input)
     {
         if (IsGrounded)
+<<<<<<< Updated upstream
         {         
             player.State.Value = PlayerState.Grounded;
             
         }
         if (player.State.Value == PlayerState.Jumping)
+=======
+        {                   
+            //...actualiza la variable y pasa de Jumping a Grounded
+            player.State.Value = PlayerState.Grounded;
+            if (_jumpsLeft == 0)
+            {
+                _jumpsLeft = maxJumps;
+            }
+            //Ahora el Jump no se vuelve a ejecutar hasta que pulsemos el salto
+        }
+
+        if (!IsGrounded && player.State.Value != PlayerState.Hooked)
+>>>>>>> Stashed changes
         {
             player.State.Value = PlayerState.Jumping;
         }

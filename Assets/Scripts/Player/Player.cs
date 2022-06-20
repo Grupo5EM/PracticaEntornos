@@ -109,6 +109,18 @@ public class Player : NetworkBehaviour
 
     #endregion
 }
+<<<<<<< Updated upstream
+=======
+
+public enum PlayerState
+{
+    Grounded = 0,
+    Jumping = 1,
+    Hooked = 2
+}
+
+
+>>>>>>> Stashed changes
 
 public enum PlayerState
 {

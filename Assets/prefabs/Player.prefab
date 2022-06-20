@@ -404,6 +404,93 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   State:
     m_InternalValue: 0
+<<<<<<< Updated upstream
+=======
+  vida:
+    m_InternalValue: 0
+  idSkin:
+    m_InternalValue: 0
+  playerNameValue:
+    m_InternalValue:
+      utf8LengthInBytes: 0
+      bytes:
+        offset0000:
+          byte0000: 0
+          byte0001: 0
+          byte0002: 0
+          byte0003: 0
+          byte0004: 0
+          byte0005: 0
+          byte0006: 0
+          byte0007: 0
+          byte0008: 0
+          byte0009: 0
+          byte0010: 0
+          byte0011: 0
+          byte0012: 0
+          byte0013: 0
+          byte0014: 0
+          byte0015: 0
+        offset0016:
+          byte0000: 0
+          byte0001: 0
+          byte0002: 0
+          byte0003: 0
+          byte0004: 0
+          byte0005: 0
+          byte0006: 0
+          byte0007: 0
+          byte0008: 0
+          byte0009: 0
+          byte0010: 0
+          byte0011: 0
+          byte0012: 0
+          byte0013: 0
+          byte0014: 0
+          byte0015: 0
+        offset0032:
+          byte0000: 0
+          byte0001: 0
+          byte0002: 0
+          byte0003: 0
+          byte0004: 0
+          byte0005: 0
+          byte0006: 0
+          byte0007: 0
+          byte0008: 0
+          byte0009: 0
+          byte0010: 0
+          byte0011: 0
+          byte0012: 0
+          byte0013: 0
+          byte0014: 0
+          byte0015: 0
+        byte0048: 0
+        byte0049: 0
+        byte0050: 0
+        byte0051: 0
+        byte0052: 0
+        byte0053: 0
+        byte0054: 0
+        byte0055: 0
+        byte0056: 0
+        byte0057: 0
+        byte0058: 0
+        byte0059: 0
+        byte0060: 0
+        byte0061: 0
+  playerID: 0
+  uiVida: {fileID: 0}
+  gameManager: {fileID: 0}
+  listSkins:
+  - {fileID: 9100000, guid: e0d7adc8be511a14dbdab77d72cda5fb, type: 2}
+  - {fileID: 9100000, guid: 9d8cd007e2fbf8f4e8283b7de1a9220a, type: 2}
+  - {fileID: 9100000, guid: 479dd0d64371b2e4496d5a8cfbb47b8c, type: 2}
+  - {fileID: 9100000, guid: f79b5ca4e14bbcd448454334388dc085, type: 2}
+  playerName: {fileID: 1620394804763630380}
+  isConnected: 0
+  isReady: 0
+>>>>>>> Stashed changes
   startPositions:
   - {fileID: 2364838769126004091, guid: bf1c45d35740ef74faf5e681c95e35ab, type: 3}
   - {fileID: 552170597596643432, guid: 908f96668a73a34449bd4ee7272b36fe, type: 3}
@@ -501,6 +588,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f6e6c65243d1b4949a40b6704489359d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+<<<<<<< Updated upstream
+=======
+  handler: {fileID: 0}
+  anim: {fileID: 0}
+  playerName: {fileID: 0}
+  gameManager: {fileID: 0}
+>>>>>>> Stashed changes
 --- !u!114 &8835148374866897493
 MonoBehaviour:
   m_ObjectHideFlags: 0
