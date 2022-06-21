@@ -38,8 +38,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Button changeNameButton;
     [SerializeField] public  Button preparado;
 
-    [SerializeField] private GameManager gameManager;
-    [SerializeField] List<RuntimeAnimatorController> prefabSkins;
+    [SerializeField] private GameManager gameManager;    
     [SerializeField] GameObject player;
 
     

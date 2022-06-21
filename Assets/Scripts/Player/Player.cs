@@ -16,7 +16,7 @@ public class Player : NetworkBehaviour
     public NetworkVariable<int> vida;
     public NetworkVariable<int> idSkin;
     public NetworkVariable<FixedString64Bytes> playerNameValue;
-
+    
     [SerializeField] public ulong playerID;   
 
 
@@ -51,6 +51,10 @@ public class Player : NetworkBehaviour
         State = new NetworkVariable<PlayerState>();
         
         vida = new NetworkVariable<int>(0,NetworkVariableReadPermission.Everyone,NetworkVariableWritePermission.Server);
+
+        idSkin = new NetworkVariable<int>();
+
+        playerNameValue = new NetworkVariable<FixedString64Bytes>();
 
         uiVida = GameObject.Find("UIManager").GetComponent<UIManager>();
 
@@ -93,7 +97,8 @@ public class Player : NetworkBehaviour
             
         } else
         {
-            
+            playerName.text = playerNameValue.Value.ToString();
+            playerAnimator.runtimeAnimatorController = listSkins[idSkin.Value];
         }
 
 
@@ -118,16 +123,17 @@ public class Player : NetworkBehaviour
 
     void ConfigureSkin()
     {
-        int skinID = gameManager.checkSkin();
+        var skinID = gameManager.checkSkin();
         playerAnimator.runtimeAnimatorController = listSkins[skinID];
         ConfigureSkinServerRpc(skinID);
     }
 
     void ConfigureName()
     {
-        var newName = gameManager.checkName();
-        playerName.text = newName.text;
-        ConfigureNameServerRpc(newName.text);        
+        var newName = gameManager.checkName().text;
+        playerName.text = newName;
+        playerName.text = newName;
+        ConfigureNameServerRpc(newName);        
     }
 
     void ConfigureInitialPlayerState()
@@ -193,14 +199,16 @@ public class Player : NetworkBehaviour
     [ServerRpc]
     public void ConfigureSkinServerRpc(int skinID)
     {
-        playerAnimator.runtimeAnimatorController = listSkins[skinID];
+        idSkin.Value = skinID;
+        playerAnimator.runtimeAnimatorController = listSkins[idSkin.Value];
         ConfigureSkinClientRpc(skinID);
     }
 
     [ServerRpc]
     public void ConfigureNameServerRpc(string clientName)
     {
-        playerName.text = clientName;
+        playerNameValue.Value = clientName;
+        playerName.text = playerNameValue.Value.ToString();
         ConfigureNameClientRpc(clientName);
     }
 
