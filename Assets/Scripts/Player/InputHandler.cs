@@ -15,6 +15,7 @@ public class InputHandler : NetworkBehaviour
     [SerializeField] InputAction _fire;
     [SerializeField] InputAction _mousePosition;
     [SerializeField] InputAction _ready;
+    [SerializeField] InputAction _showMenu;
 
     // https://docs.unity3d.com/ScriptReference/Events.UnityEvent.html
     public UnityEvent<Vector2> OnMove;
@@ -24,6 +25,7 @@ public class InputHandler : NetworkBehaviour
     public UnityEvent<Vector2> OnHookRender;
     public UnityEvent OnJump;
     public UnityEvent OnReady;
+    public UnityEvent OnShowMenu;
     public UnityEvent<Vector2, int> OnFire;
 
     Vector2 CachedMoveInput { get; set; }
@@ -43,6 +45,7 @@ public class InputHandler : NetworkBehaviour
 
         _jump.AddBinding("<Keyboard>/space");
         _ready.AddBinding("<Keyboard>/r");
+        _showMenu.AddBinding("<Keyboard>/e");
         _hook.AddBinding("<Mouse>/rightButton");
         _fire.AddBinding("<Mouse>/leftButton");
         _mousePosition.AddBinding("<Mouse>/position");
@@ -55,6 +58,7 @@ public class InputHandler : NetworkBehaviour
         _hook.Enable();
         _fire.Enable();
         _ready.Enable();
+        _showMenu.Enable();
         _mousePosition.Enable();
     }
 
@@ -65,6 +69,7 @@ public class InputHandler : NetworkBehaviour
         _hook.Disable();
         _fire.Disable();
         _ready.Disable();
+        _showMenu.Disable();
         _mousePosition.Disable();
     }
 
@@ -79,6 +84,7 @@ public class InputHandler : NetworkBehaviour
             var hookPerformed = _hook.WasPerformedThisFrame();
             var jumpPerformed = _jump.WasPerformedThisFrame();
             var readyPerformed = _ready.WasPerformedThisFrame();
+            var showMenuPerformed = _showMenu.WasPerformedThisFrame();
 
             Move(CachedMoveInput);
             MousePosition(mousePosition);
@@ -89,6 +95,7 @@ public class InputHandler : NetworkBehaviour
             
           //Como la tecla espacio ha sido presionada, se ejecuta el salto y por tanto su m?odo
             if (readyPerformed) { Debug.Log("Ready ha sido performed"); Ready();  }
+            if (showMenuPerformed) { Debug.Log("Showmenu ha sido performed"); ShowMenu(); }
             if (jumpPerformed) {  Jump(); }
             if (_fire.WasPerformedThisFrame()) { Fire(screenPoint, (int)OwnerClientId); }
 
@@ -148,6 +155,10 @@ public class InputHandler : NetworkBehaviour
         OnReady?.Invoke();
     }
 
+    void ShowMenu()
+    {
+        OnShowMenu?.Invoke();
+    }
     #endregion
 
 }

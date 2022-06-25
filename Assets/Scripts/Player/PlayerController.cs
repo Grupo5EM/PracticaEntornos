@@ -58,7 +58,8 @@ public class PlayerController : NetworkBehaviour
         handler.OnMove.AddListener(UpdatePlayerVisualsServerRpc);       
         handler.OnMoveFixedUpdate.AddListener(UpdatePlayerPositionServerRpc);
         handler.OnJump.AddListener(PerformJumpServerRpc);
-        handler.OnReady.AddListener(GetPlayerReadyServerRpc);        
+        handler.OnReady.AddListener(GetPlayerReadyServerRpc);
+        handler.OnShowMenu.AddListener(gameManager.showGameList);
         FlipSprite.OnValueChanged += OnFlipSpriteValueChanged;
     }
 
@@ -66,6 +67,8 @@ public class PlayerController : NetworkBehaviour
     {
         handler.OnMove.RemoveListener(UpdatePlayerVisualsServerRpc);
         handler.OnJump.RemoveListener(PerformJumpServerRpc);
+        handler.OnReady.RemoveListener(GetPlayerReadyServerRpc);
+        handler.OnShowMenu.RemoveListener(gameManager.showGameList);
         handler.OnMoveFixedUpdate.RemoveListener(UpdatePlayerPositionServerRpc);
 
         FlipSprite.OnValueChanged -= OnFlipSpriteValueChanged;
@@ -212,6 +215,7 @@ public class PlayerController : NetworkBehaviour
     }
 
     bool IsGrounded => collider.IsTouching(filter);
+
 
     #endregion
 

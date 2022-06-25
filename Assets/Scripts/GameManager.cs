@@ -8,6 +8,7 @@ using System;
 
 public class GameManager : NetworkBehaviour
 {
+    
     [SerializeField] NetworkManager networkManager;
     [SerializeField] GameObject playerPrefab;
     [SerializeField] int skinID;
@@ -19,6 +20,17 @@ public class GameManager : NetworkBehaviour
     [SerializeField] Player clientPlayer;
     [SerializeField] PlayerController clientPlayerController;
     public int connectedPlayers = 0;
+
+    [Header("In Game")]
+    [SerializeField] Text player1;
+    [SerializeField] Text player2;
+    [SerializeField] GameObject killTexts;
+    [SerializeField] GameObject listMenu;
+    bool listMenuActive = false;
+    [SerializeField] Text listMenuNames;
+    [SerializeField] Text listMenuPing;
+    [SerializeField] Text listMenuKills;
+    [SerializeField] Text listMenuDeaths;
 
 
     private void Awake()
@@ -91,8 +103,7 @@ public class GameManager : NetworkBehaviour
             clientPlayerController = newPlayer.GetComponent<PlayerController>();
             clientPlayer.isConnected = true;
             clientPlayer.playerID = clientID;
-            playerList.Add(clientPlayer);
-            
+            playerList.Add(clientPlayer);            
         }
         else
         {
@@ -167,5 +178,111 @@ public class GameManager : NetworkBehaviour
         
 
         return serverReady;
+    }
+
+    
+    public void showKillServer(string shootingPlayerS, string shotPlayerS)
+    {
+        player1.text = shootingPlayerS;
+        player2.text = shotPlayerS;
+
+        showKillClientRpc(shootingPlayerS, shotPlayerS);
+    }
+
+    [ClientRpc]
+    void showKillClientRpc(string shootingPlayerC, string shotPlayerC)
+    {
+        player1.text = shootingPlayerC;
+        player2.text = shotPlayerC;
+
+        killTexts.SetActive(true);
+        Invoke("hideKill", 7);
+    }
+
+    
+    void hideKill()
+    {
+        killTexts.SetActive(false);
+    }
+
+    public void showGameList()
+    {
+        if (listMenuActive == false)
+        {
+            listMenuActive = true;
+            updatePlayerListServerRpc();
+            listMenu.SetActive(true);
+        }
+        else
+        {
+            listMenu.SetActive(false);
+            listMenuActive = false;
+        }
+        
+    }
+
+    [ServerRpc (RequireOwnership = false)]
+    void updatePlayerListServerRpc()
+    {
+        organisePlayerList();
+        updatePingServerRpc();
+        resetPlayerListClientRpc();
+
+        for (int i = 0; i < playerList.Count; i++)
+        {
+           string nameServer = playerList[i].playerNameValue.Value.ToString();
+           int pingServer = playerList[i].ping.Value;
+           int killsServer = playerList[i].kills.Value;
+           int deathsServer = playerList[i].deaths.Value;
+           updatePlayerListClientRpc(nameServer, pingServer, killsServer, deathsServer);
+        }
+            
+    }
+
+    [ClientRpc]
+    void resetPlayerListClientRpc()
+    {
+        listMenuNames.text = "";
+        listMenuPing.text = "";
+        listMenuKills.text = "";
+        listMenuDeaths.text = "";               
+    }
+
+    [ClientRpc]
+    void updatePlayerListClientRpc(string name, int ping, int kills, int deaths)
+    {
+        listMenuNames.text += name + "\n";
+        listMenuPing.text += ping + "\n";
+        listMenuKills.text += kills + "\n";
+        listMenuDeaths.text += deaths + "\n";
+    }
+      
+
+    void organisePlayerList()
+    {
+        for (int j = 1; j < playerList.Count; j++)
+        {
+
+            Player aux = playerList[j];
+
+            int i = j - 1;
+            while (i >= 0 && playerList[i].kills.Value < aux.kills.Value)
+            {
+                playerList[i + 1] = playerList[i];
+                i = i - 1;
+            }
+
+            playerList[i + 1] = aux;
+        }
+    }
+
+    [ServerRpc]
+    void updatePingServerRpc()
+    {
+        for (int i = 0; i < playerList.Count; i++)
+        {
+            int ping = (int)NetworkManager.Singleton.NetworkConfig.NetworkTransport.GetCurrentRtt(playerList[i].playerID);
+            playerList[i].ping.Value = ping;
+        }
     }
 }
