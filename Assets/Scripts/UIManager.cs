@@ -37,12 +37,17 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Button azul;
     [SerializeField] private Button changeNameButton;
     [SerializeField] public  Button preparado;
-
+    
     [SerializeField] private GameManager gameManager;    
     [SerializeField] GameObject player;
 
-    
-    
+    [Header("Tiempo y Rondas")]
+    [SerializeField] public Text contador;
+    private float time = 60f;
+    private int rondaActual = 1;
+    [SerializeField] public Text Ronda ;
+
+
     [Header("Final de Juego")]
     [SerializeField] private GameObject menuVictoria;
     [SerializeField] private Text TextoFinal;
@@ -90,6 +95,29 @@ public class UIManager : MonoBehaviour
     #endregion
 
     #region UI Related Methods
+    private void TiempoyRondas()
+    {
+        contador.text = " " + time;
+        Ronda.text = " " + rondaActual;
+
+    }
+    private void ContadorTiempo()
+    {
+        time -= Time.deltaTime;
+        contador.text = " " + time.ToString("f0");
+        if (time==0)
+        {
+            rondaActual++;
+            //paralizarrondas
+        
+            time = 60f;
+            if (rondaActual == 4)
+            {
+                //llamar a Fin de partida completo
+            }
+        }
+    }
+    
     private void SkinPersonaje(int color)
     {
         FindPlayer();
