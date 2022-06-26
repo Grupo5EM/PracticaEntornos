@@ -17,7 +17,7 @@ public class GameManager : NetworkBehaviour
     [SerializeField] ulong client;
     [SerializeField] Text playerName;
     [SerializeField] List<Player> playerList;
-    [SerializeField] Player clientPlayer;
+    [SerializeField]  public Player clientPlayer;
     [SerializeField] PlayerController clientPlayerController;
     public int connectedPlayers = 0;
 
@@ -114,6 +114,8 @@ public class GameManager : NetworkBehaviour
     }
 
     [ServerRpc (RequireOwnership = false)]
+  
+    
     private void CheckDisconnectedPlayersServerRpc()
     {
         List<int> disconnectedID = new List<int>(); 
@@ -179,8 +181,16 @@ public class GameManager : NetworkBehaviour
 
         return serverReady;
     }
+    [ServerRpc(RequireOwnership = false)]
+    public void setRoundServerRpc()
+    {
 
-    
+        for (int i = 0; i < playerList.Count; i++)
+        {
+            playerList[i].StartRoundPlayer();
+        }
+    }
+
     public void showKillServer(string shootingPlayerS, string shotPlayerS)
     {
         player1.text = shootingPlayerS;

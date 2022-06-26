@@ -23,7 +23,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Button buttonClient;
     [SerializeField] private Button buttonServer;
     [SerializeField] private InputField inputFieldIP;
-    
+    public NetworkVariable<float> time;
 
 
     //Añadimos por aquí más elementos para el lobby 
@@ -36,16 +36,17 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Button naranja;
     [SerializeField] private Button azul;
     [SerializeField] private Button changeNameButton;
-    [SerializeField] public  Button preparado;
-    
-    [SerializeField] private GameManager gameManager;    
+    [SerializeField] public Button preparado;
+
+    [SerializeField] private GameManager gameManager;
     [SerializeField] GameObject player;
 
     [Header("Tiempo y Rondas")]
     [SerializeField] public Text contador;
-    private float time = 60f;
+    // private float time = 60f;
+    private bool empezado = false;
     private int rondaActual = 1;
-    [SerializeField] public Text Ronda ;
+    [SerializeField] public Text Ronda;
 
 
     [Header("Final de Juego")]
@@ -68,10 +69,16 @@ public class UIManager : MonoBehaviour
     {
 
         transport = (UnityTransport)networkManager.NetworkConfig.NetworkTransport;
-
+        time = new NetworkVariable<float>(60f);
     }
 
-
+    private void Update()
+    {
+        if (empezado == true)
+        {
+            ContadorTiempo();
+        }
+    }
 
 
     private void Start()
@@ -80,44 +87,77 @@ public class UIManager : MonoBehaviour
         buttonClient.onClick.AddListener(() => StartClient());
         buttonServer.onClick.AddListener(() => StartServer());
         changeNameButton.onClick.AddListener(() => ChangeName());
-        
+
 
         verde.onClick.AddListener(() => SkinPersonaje(0));
         azul.onClick.AddListener(() => SkinPersonaje(1));
         rosa.onClick.AddListener(() => SkinPersonaje(2));
         naranja.onClick.AddListener(() => SkinPersonaje(3));
-        
+
         ActivateMainMenu();
         FindPlayer();
-        
+        TextoFinal.enabled = false;
     }
 
     #endregion
 
     #region UI Related Methods
-    private void TiempoyRondas()
-    {
-        contador.text = " " + time;
-        Ronda.text = " " + rondaActual;
 
-    }
     private void ContadorTiempo()
     {
-        time -= Time.deltaTime;
-        contador.text = " " + time.ToString("f0");
-        if (time==0)
+
+        time.Value -= Time.deltaTime;
+        contador.text = "Tiempo: " + time.Value.ToString("f0");
+        Ronda.text = "Ronda:  " + rondaActual;
+        if (time.Value == 0 || time.Value < 0)
         {
             rondaActual++;
             //paralizarrondas
-        
-            time = 60f;
+            FinRonda();
+
+
+            time.Value = 65f;
             if (rondaActual == 4)
             {
                 //llamar a Fin de partida completo
+                FinPartida();
             }
         }
     }
-    
+    private void FinRonda()
+    {
+
+        ParalizarJugador();
+        MostrarPosiciones();
+        Invoke("ParalizarJugador", 5.0f);
+        Invoke("MostrarPosiciones", 4.0f);
+        //Cambiar posiciones
+        gameManager.setRoundServerRpc();
+
+    }
+    private void MostrarPosiciones(){
+        gameManager.showGameList();
+    }
+
+    private void ParalizarJugador()
+    {
+        if (gameManager.clientPlayer.GetComponent<InputHandler>().enabled == false)
+        {
+            gameManager.clientPlayer.GetComponent<InputHandler>().enabled = true;
+        }
+        else
+        {
+            gameManager.clientPlayer.GetComponent<InputHandler>().enabled = false;
+
+        }
+    }
+    private void FinPartida()
+    {
+        gameManager.showGameList();
+        TextoFinal.enabled = true;
+        ParalizarJugador();
+
+    }
     private void SkinPersonaje(int color)
     {
         FindPlayer();
@@ -145,12 +185,7 @@ public class UIManager : MonoBehaviour
         }
 
     }
-    private void FinPartida(string ganador)
-    {
-        menuVictoria.SetActive(true);
-        TextoFinal.text = ganador+" Os ha pegado una paliza";
-
-    }
+   
     private void JugarHost()
     {
         //playerScript = player.GetComponent<Player>();
@@ -191,17 +226,13 @@ public class UIManager : MonoBehaviour
         
     }
     //En este metodo informaremos que jugador a matado a quien
-    private void ParteDeGuerra(string asesino, string muerto)
-    {
 
-        informacionBajas.text = " Ha matado a ";
-
-    }
     private void ActivateInGameHUD()
     {
         mainMenu.SetActive(false);
-        inGameHUD.SetActive(true);
 
+        inGameHUD.SetActive(true);
+        empezado = true;
         //por cada unidad se le quita medio corazón, a 0 tiene 3 vidas y si lo pones a 4 solo te queda un corazón 
         UpdateLifeUI(0);
     }
@@ -329,8 +360,21 @@ public class UIManager : MonoBehaviour
             }
         }
     }
-    #endregion
+    private void OnEnable()
+    {
+        time.OnValueChanged += OnTimeValueChanged;
+    }
+        private void OnDisable()
+    {
 
-}
+        time.OnValueChanged -= OnTimeValueChanged;
+    }
+    void OnTimeValueChanged(float previous, float current)
+    {
+        time.Value = current;
+    }
+        #endregion
+
+    }
 
 

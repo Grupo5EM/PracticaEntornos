@@ -111,7 +111,7 @@ public class Player : NetworkBehaviour
             ConfigurePositions();
             ConfigureControls();
             playerID = clientID;
-            
+            gameManager.clientPlayer = this;
         } else
         {
             playerName.text = playerNameValue.Value.ToString();
@@ -183,7 +183,10 @@ public class Player : NetworkBehaviour
         this.transform.position = startPositions[nextPosition].position;
     }
 
-
+    public void StartRoundPlayer()
+    {
+        ConfigurePositions();
+    }
 
     #endregion
 
