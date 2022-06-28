@@ -88,7 +88,7 @@ public class UIManager : MonoBehaviour
         naranja.onClick.AddListener(() => SkinPersonaje(3));
         
         ActivateMainMenu();
-        FindPlayer();
+        
         
     }
 
@@ -120,7 +120,6 @@ public class UIManager : MonoBehaviour
     
     private void SkinPersonaje(int color)
     {
-        FindPlayer();
         //Aquí se pasaria por paramtro el color de la skin que se quiere para modificar luego el animator
         if (color == 0)
         {          
@@ -154,6 +153,8 @@ public class UIManager : MonoBehaviour
     private void JugarHost()
     {
         //playerScript = player.GetComponent<Player>();
+        gameManager.initialText();
+        gameManager.isHost = true;
         NetworkManager.Singleton.StartHost();
         ActivateInGameHUD();
         //playerScript.StartPlayerNoCallback();
@@ -165,6 +166,7 @@ public class UIManager : MonoBehaviour
     private void JugarClient()
     {
         //playerScript = player.GetComponent<Player>();
+        gameManager.initialText();
         NetworkManager.Singleton.StartClient();
         ActivateInGameHUD();
         //playerScript.StartPlayerNoCallback();
@@ -246,7 +248,7 @@ public class UIManager : MonoBehaviour
 
     public void ChangeName()
     {
-        FindPlayer();
+        
         gameManager.setName(nombreUsuario.textComponent);
         
     }
@@ -261,7 +263,7 @@ public class UIManager : MonoBehaviour
         menuPersonalizacion.SetActive(true);
         //NetworkManager.Singleton.StartHost();        
         preparado.onClick.AddListener(JugarHost);
-        FindPlayer();
+        
 
         //ActivateInGameHUD();
     }
@@ -301,7 +303,7 @@ public class UIManager : MonoBehaviour
         menuPersonalizacion.SetActive(true);
         //NetworkManager.Singleton.StartClient();
         preparado.onClick.AddListener(JugarClient);
-        FindPlayer();
+        
         
 
     }
@@ -312,23 +314,6 @@ public class UIManager : MonoBehaviour
        
     }
 
-
-    private void FindPlayer()
-    {
-        player = GameObject.FindGameObjectWithTag("Player");
-        if (player != null)
-        {
-            playerController = player.GetComponent<PlayerController>();
-            playerScript = player.GetComponent<Player>();
-
-            if (!playerScript.IsLocalPlayer)
-            {
-                playerController = null;
-                playerScript = null;
-                player = null;
-            }
-        }
-    }
     #endregion
 
 }

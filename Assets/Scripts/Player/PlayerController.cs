@@ -58,7 +58,7 @@ public class PlayerController : NetworkBehaviour
         handler.OnMove.AddListener(UpdatePlayerVisualsServerRpc);       
         handler.OnMoveFixedUpdate.AddListener(UpdatePlayerPositionServerRpc);
         handler.OnJump.AddListener(PerformJumpServerRpc);
-        handler.OnReady.AddListener(GetPlayerReadyServerRpc);
+        handler.OnReady.AddListener(setClientReady);
         handler.OnShowMenu.AddListener(gameManager.showGameList);
         FlipSprite.OnValueChanged += OnFlipSpriteValueChanged;
     }
@@ -67,7 +67,7 @@ public class PlayerController : NetworkBehaviour
     {
         handler.OnMove.RemoveListener(UpdatePlayerVisualsServerRpc);
         handler.OnJump.RemoveListener(PerformJumpServerRpc);
-        handler.OnReady.RemoveListener(GetPlayerReadyServerRpc);
+        handler.OnReady.RemoveListener(setClientReady);
         handler.OnShowMenu.RemoveListener(gameManager.showGameList);
         handler.OnMoveFixedUpdate.RemoveListener(UpdatePlayerPositionServerRpc);
 
@@ -121,13 +121,15 @@ public class PlayerController : NetworkBehaviour
         }
 
     }
+    
+ 
+
     [ServerRpc]
-    void GetPlayerReadyServerRpc()
+    void setPlayerReadyServerRpc()
     {
         player.isReady = true;
         gameManager.SetReady();
     }
-
 
     // https://docs-multiplayer.unity3d.com/netcode/current/advanced-topics/message-system/serverrpc
     [ServerRpc]
@@ -216,7 +218,11 @@ public class PlayerController : NetworkBehaviour
 
     bool IsGrounded => collider.IsTouching(filter);
 
-
+    void setClientReady()
+    {
+        gameManager.setReadyText();
+        setPlayerReadyServerRpc();
+    }
     #endregion
 
 }

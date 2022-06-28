@@ -29,7 +29,7 @@ public class Player : NetworkBehaviour
 
     Animator playerAnimator;
     [SerializeField] List<RuntimeAnimatorController> listSkins;
-    [SerializeField] Text playerName;
+    public Text playerName;
     public bool isConnected = false;
     public bool isReady = false;
 
@@ -46,7 +46,7 @@ public class Player : NetworkBehaviour
     private void Awake()
     {
 
-        Debug.Log(IsLocalPlayer);
+       
         gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
         playerAnimator = GetComponent<Animator>();
         NetworkManager.OnClientConnectedCallback += ConfigurePlayer;
@@ -105,13 +105,15 @@ public class Player : NetworkBehaviour
     {
         
         if (IsLocalPlayer)
-        {            
+        {
+            gameManager.clientPlayer = this;          
             ConfigureInitialPlayerState();
             ConfigureCamera();
             ConfigurePositions();
             ConfigureControls();
             playerID = clientID;
             
+           
         } else
         {
             playerName.text = playerNameValue.Value.ToString();
@@ -134,10 +136,12 @@ public class Player : NetworkBehaviour
     public void StartMatchPlayer()
     {
         ConfigurePositions();
-        //ConfigureSkin();
-        //ConfigureName();
+        ResetValues();
     }
-
+    public void StartRoundPlayer()
+    {
+        ConfigurePositions();
+    }
     void ConfigureSkin()
     {
         var skinID = gameManager.checkSkin();
@@ -147,8 +151,10 @@ public class Player : NetworkBehaviour
 
     void ConfigureName()
     {
-        var newName = gameManager.checkName().text;
-        playerName.text = newName;        
+
+        
+        string newName = gameManager.checkName().text;        
+        playerName.text = newName;           
         ConfigureNameServerRpc(newName);        
     }
 
@@ -183,6 +189,14 @@ public class Player : NetworkBehaviour
         this.transform.position = startPositions[nextPosition].position;
     }
 
+    void ResetValues()
+    {
+        vida.Value = 0;
+
+        kills.Value = 0;
+        deaths.Value = 0;
+
+    }
 
 
     #endregion
