@@ -203,15 +203,7 @@ public class GameManager : NetworkBehaviour
         listoText.SetActive(false);
     }
 
-    [ServerRpc]
-    public void setRoundServerRpc(){
-        
-        for (int i = 0; i < playerList.Count; i++)
-        {
-            playerList[i].StartRoundPlayer();
-        }
-    }
-
+   
     public void SetReady()
     {
         

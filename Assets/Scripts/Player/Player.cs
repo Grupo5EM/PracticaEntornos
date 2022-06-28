@@ -1,4 +1,4 @@
-<<using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Cinemachine;
@@ -192,10 +192,7 @@ public class Player : NetworkBehaviour
     }
 
 
-    public void StartRoundPlayer()
-    {
-        ConfigurePositions();
-    }
+  
 
     void ResetValues()
     {
