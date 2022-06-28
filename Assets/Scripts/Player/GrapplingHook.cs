@@ -86,12 +86,11 @@ public class GrapplingHook : NetworkBehaviour
     [ServerRpc]
     void UpdateHookServerRpc(Vector2 input)
     {
-
         if (player.State.Value == PlayerState.Hooked)
         {
             ClimbRope(input.y);
             UpdateRopeClientRpc();
-            ropeRenderer.enabled = true;
+            ropeRenderer.SetPosition(0, playerTransform.position);
         }
         else if (player.State.Value == PlayerState.Grounded)
         {
@@ -122,6 +121,8 @@ public class GrapplingHook : NetworkBehaviour
             ropeRenderer.SetPosition(1, anchor);
             UpdateAnchorClientRpc(hit.centroid);
             player.State.Value = PlayerState.Hooked;
+            rope.enabled = true;
+            ropeRenderer.enabled = true;
         }
     }
 

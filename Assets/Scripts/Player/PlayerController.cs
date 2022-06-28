@@ -23,15 +23,15 @@ public class PlayerController : NetworkBehaviour
 
     // https://docs.unity3d.com/2020.3/Documentation/ScriptReference/ContactFilter2D.html
     ContactFilter2D filter;
-    InputHandler handler;
+    public InputHandler handler;
     Player player;
     Rigidbody2D rb;
     new CapsuleCollider2D collider;
     public Animator anim;
     public Text playerName;
     SpriteRenderer spriteRenderer;
-    bool isJumping;
 
+    [SerializeField] GameManager gameManager;
     // https://docs-multiplayer.unity3d.com/netcode/current/basics/networkvariable
     NetworkVariable<bool> FlipSprite;
 
@@ -42,6 +42,7 @@ public class PlayerController : NetworkBehaviour
 
     private void Awake()
     {
+        gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
         rb = GetComponent<Rigidbody2D>();
         collider = GetComponent<CapsuleCollider2D>();
         handler = GetComponent<InputHandler>();
@@ -57,7 +58,8 @@ public class PlayerController : NetworkBehaviour
         handler.OnMove.AddListener(UpdatePlayerVisualsServerRpc);       
         handler.OnMoveFixedUpdate.AddListener(UpdatePlayerPositionServerRpc);
         handler.OnJump.AddListener(PerformJumpServerRpc);
-
+        handler.OnReady.AddListener(GetPlayerReadyServerRpc);
+        handler.OnShowMenu.AddListener(gameManager.showGameList);
         FlipSprite.OnValueChanged += OnFlipSpriteValueChanged;
     }
 
@@ -65,6 +67,8 @@ public class PlayerController : NetworkBehaviour
     {
         handler.OnMove.RemoveListener(UpdatePlayerVisualsServerRpc);
         handler.OnJump.RemoveListener(PerformJumpServerRpc);
+        handler.OnReady.RemoveListener(GetPlayerReadyServerRpc);
+        handler.OnShowMenu.RemoveListener(gameManager.showGameList);
         handler.OnMoveFixedUpdate.RemoveListener(UpdatePlayerPositionServerRpc);
 
         FlipSprite.OnValueChanged -= OnFlipSpriteValueChanged;
@@ -117,6 +121,12 @@ public class PlayerController : NetworkBehaviour
         }
 
     }
+    [ServerRpc]
+    void GetPlayerReadyServerRpc()
+    {
+        player.isReady = true;
+        gameManager.SetReady();
+    }
 
 
     // https://docs-multiplayer.unity3d.com/netcode/current/advanced-topics/message-system/serverrpc
@@ -134,19 +144,14 @@ public class PlayerController : NetworkBehaviour
         else if (_jumpsLeft == 0)
         {
             return;
-        }
-
-        Debug.Log("Pre-Salto: " + _jumpsLeft + ", estado del jugador: " + player.State.Value);
+        }        
         
         //Cambia al estado de Jumping
         player.State.Value = PlayerState.Jumping; 
         anim.SetBool("isJumping", true);
         rb.velocity = new Vector2(rb.velocity.x, jumpHeight);
         //Y le resta el número de saltos
-        _jumpsLeft--;
-        
-        Debug.Log("Post-Salto: " + _jumpsLeft + ", estado del jugador: " + player.State.Value);
-        
+        _jumpsLeft--;                      
         //Ahora salta al update del InputHandler, que es donde se ejecuta este método
     }
 
@@ -210,6 +215,7 @@ public class PlayerController : NetworkBehaviour
     }
 
     bool IsGrounded => collider.IsTouching(filter);
+
 
     #endregion
 

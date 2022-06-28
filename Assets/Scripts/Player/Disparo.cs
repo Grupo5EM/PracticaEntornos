@@ -7,13 +7,17 @@ public class Disparo : NetworkBehaviour
     InputHandler handler;
     Transform playerTransform;
     [SerializeField] Material material;
+
     Player player;
     LineRenderer bulletRenderer;
     bool esp;
+    [SerializeField] GameManager gameManager;
 
     private void Awake()
     {
         handler = GetComponent<InputHandler>();
+        thisPlayer = GetComponent<Player>();
+        gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
 
         bulletRenderer = new GameObject().AddComponent<LineRenderer>();
 
@@ -57,6 +61,9 @@ public class Disparo : NetworkBehaviour
             //cogemos el jugador que ha sido hiteao y le baja la vida en la ui y en el player
             Player hiteao = hits[1].collider.gameObject.GetComponent<Player>();
             hiteao.vida.Value += 1;
+
+            checkDeath(hiteao);
+
             ClientRpcParams clientRpcParams = new ClientRpcParams
             {
                 Send = new ClientRpcSendParams
@@ -96,5 +103,24 @@ public class Disparo : NetworkBehaviour
         yield return new WaitForSeconds(time);
 
         RemoveBulletClientRpc();
+    }
+    void checkDeath(Player shotPlayer)
+    {
+        if (shotPlayer.vida.Value == 6)
+        {
+            //Cambios en el jugador que ha recibido el disparo 
+            shotPlayer.deaths.Value += 1;
+            shotPlayer.vida.Value = 0;
+            shotPlayer.ConfigurePositions();
+
+            //Cambios en el jugador que ha disparado 
+            player.kills.Value += 1;
+
+            //Lanzar JUGADOR 1 ha matado a JUGADOR 2
+            var player1 = player.playerNameValue.Value.ToString();
+            var player2 = shotPlayer.playerNameValue.Value.ToString();
+
+            gameManager.showKillServer(player1, player2);
+        }
     }
 }

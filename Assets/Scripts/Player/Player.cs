@@ -5,7 +5,7 @@ using Cinemachine;
 using Unity.Netcode;
 using UnityEngine.UI;
 using System;
-
+using Unity.Collections;
 
 public class Player : NetworkBehaviour
 {
@@ -14,10 +14,14 @@ public class Player : NetworkBehaviour
     // https://docs-multiplayer.unity3d.com/netcode/current/basics/networkvariable
     public NetworkVariable<PlayerState> State;
     public NetworkVariable<int> vida;
-    [SerializeField] public NetworkVariable<bool> disparando;
+    public NetworkVariable<int> idSkin;
+    public NetworkVariable<FixedString64Bytes> playerNameValue;
+    public NetworkVariable<int> kills;
+    public NetworkVariable<int> deaths;
+    public NetworkVariable<int> ping;
+    
 
-    [SerializeField] private int playerID;
-    public int PlayerID => playerID;
+    [SerializeField] public ulong playerID;   
 
 
     [SerializeField] private UIManager uiVida;
@@ -26,13 +30,14 @@ public class Player : NetworkBehaviour
     Animator playerAnimator;
     [SerializeField] List<RuntimeAnimatorController> listSkins;
     [SerializeField] Text playerName;
+    public bool isConnected = false;
+    public bool isReady = false;
 
-    
-    //private UIManager uiVida;
+
+
     public List<Transform> startPositions; 
     //Variable para el modo DeatMatch
-    public NetworkVariable<int> bajas;
-    public NetworkVariable<int> muertes;
+    
 
 
     #endregion
@@ -43,12 +48,11 @@ public class Player : NetworkBehaviour
     {
 
 
-        Debug.Log("Despert");
         Debug.Log(IsLocalPlayer);
         gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
         playerAnimator = GetComponent<Animator>();
         NetworkManager.OnClientConnectedCallback += ConfigurePlayer;
-        NetworkManager.ConnectionApprovalCallback += StartPlayer;
+        //NetworkManager.ConnectionApprovalCallback += StartPlayer;
         
         State = new NetworkVariable<PlayerState>();
         
@@ -57,6 +61,14 @@ public class Player : NetworkBehaviour
         muertes = new NetworkVariable<int>(0);
 
         disparando = new NetworkVariable<bool>(false);
+
+        idSkin = new NetworkVariable<int>();
+
+        playerNameValue = new NetworkVariable<FixedString64Bytes>();
+
+        kills = new NetworkVariable<int>(0);
+        deaths = new NetworkVariable<int>(0);
+        ping = new NetworkVariable<int>(0);
 
         uiVida = GameObject.Find("UIManager").GetComponent<UIManager>();
 
@@ -69,21 +81,28 @@ public class Player : NetworkBehaviour
         // https://docs-multiplayer.unity3d.com/netcode/current/api/Unity.Netcode.NetworkVariable-1.OnValueChangedDelegate
         State.OnValueChanged += OnPlayerStateValueChanged;
         vida.OnValueChanged += OnPlayerLifeValueChanged;
-        bajas.OnValueChanged += OnPlayerBajasValueChanged;
-        muertes.OnValueChanged += OnPlayerMuertesValueChanged;
-        disparando.OnValueChanged += OnPlayerDisparandoValueChanged;
+
+        idSkin.OnValueChanged += OnIDSkinValueChanged;
+
+        kills.OnValueChanged += OnKillsValueChanged;
+        deaths.OnValueChanged += OnDeathsValueChanged;
+        ping.OnValueChanged += OnPingValueChanged;
+
     }
 
     private void OnDisable()
-    {
+      {
         // https://docs-multiplayer.unity3d.com/netcode/current/api/Unity.Netcode.NetworkVariable-1.OnValueChangedDelegate
 
 
         State.OnValueChanged -= OnPlayerStateValueChanged;
         vida.OnValueChanged -= OnPlayerLifeValueChanged;
-        bajas.OnValueChanged -= OnPlayerBajasValueChanged;
-        muertes.OnValueChanged -= OnPlayerMuertesValueChanged;
-        disparando.OnValueChanged -= OnPlayerDisparandoValueChanged;
+
+        idSkin.OnValueChanged = OnIDSkinValueChanged;
+
+        kills.OnValueChanged -= OnKillsValueChanged;
+        deaths.OnValueChanged -= OnDeathsValueChanged;
+        ping.OnValueChanged -= OnPingValueChanged;
     }
 
     #endregion
@@ -92,19 +111,19 @@ public class Player : NetworkBehaviour
 
     public void ConfigurePlayer(ulong clientID)
     {
-
-        Debug.Log("Se configura");
-        Debug.Log(IsLocalPlayer);
+        
         if (IsLocalPlayer)
-        {
-            Debug.Log("Configura jugador");
+        {            
             ConfigureInitialPlayerState();
             ConfigureCamera();
             ConfigurePositions();
             ConfigureControls();
+            playerID = clientID;
+            
         } else
         {
-            
+            playerName.text = playerNameValue.Value.ToString();
+            playerAnimator.runtimeAnimatorController = listSkins[idSkin.Value];
         }
 
 
@@ -118,37 +137,27 @@ public class Player : NetworkBehaviour
         }*/
     }
 
-    private void StartPlayer(byte[] arg1, ulong arg2, NetworkManager.ConnectionApprovedDelegate arg3)
-    {
-        ConfigureCamera();
-        ConfigurePositions();
-        ConfigureControls();
-    }
+   
 
-    public void StartPlayerNoCallback()
+    public void StartMatchPlayer()
     {
-        ConfigureCamera();
         ConfigurePositions();
-        ConfigureControls();
+        //ConfigureSkin();
+        //ConfigureName();
     }
 
     void ConfigureSkin()
     {
-        int skinID = gameManager.checkSkin();
+        var skinID = gameManager.checkSkin();
         playerAnimator.runtimeAnimatorController = listSkins[skinID];
         ConfigureSkinServerRpc(skinID);
     }
 
     void ConfigureName()
     {
-        var newName = gameManager.checkName();
-        if (newName != null)
-        {
-            playerName.text = newName.text;
-            ConfigureNameServerRpc(newName.text);
-
-        }
-        
+        var newName = gameManager.checkName().text;
+        playerName.text = newName;        
+        ConfigureNameServerRpc(newName);        
     }
 
     void ConfigureInitialPlayerState()
@@ -176,7 +185,7 @@ public class Player : NetworkBehaviour
         GetComponent<InputHandler>().enabled = true;
     }
 
-    void ConfigurePositions()
+    public void ConfigurePositions()
     {
         int nextPosition = UnityEngine.Random.Range(0, startPositions.Count);
         Debug.Log("Spawn: " + nextPosition);
@@ -215,14 +224,16 @@ public class Player : NetworkBehaviour
     [ServerRpc]
     public void ConfigureSkinServerRpc(int skinID)
     {
-        playerAnimator.runtimeAnimatorController = listSkins[skinID];
+        idSkin.Value = skinID;
+        playerAnimator.runtimeAnimatorController = listSkins[idSkin.Value];
         ConfigureSkinClientRpc(skinID);
     }
 
     [ServerRpc]
     public void ConfigureNameServerRpc(string clientName)
     {
-        playerName.text = clientName;
+        playerNameValue.Value = clientName;
+        playerName.text = playerNameValue.Value.ToString();
         ConfigureNameClientRpc(clientName);
     }
 
@@ -262,30 +273,35 @@ public class Player : NetworkBehaviour
         //this.uiVida.UpdateLifeUI(this.vida.Value);
     }
 
-    void OnPlayerDisparandoValueChanged(bool previous, bool current)
-    {
-        disparando.Value = current;
-    }
 
-    void OnPlayerBajasValueChanged(int previous, int current)
+    void OnIDSkinValueChanged(int previous, int current)
     {
-        bajas.Value = current;
-        //this.uiVida.UpdateLifeUI(this.vida.Value);
-    }
-
-    void OnPlayerMuertesValueChanged(int previous, int current)
-    {
-        muertes.Value = current;
-        //this.uiVida.UpdateLifeUI(this.vida.Value);
+        idSkin.Value = current;
     }
     #endregion
+
+    void OnKillsValueChanged(int previous, int current)
+    {
+        kills.Value = current;
+    }
+
+    void OnDeathsValueChanged(int previous, int current)
+    {
+        deaths.Value = current;
+    }
+
+    void OnPingValueChanged(int previous, int current)
+    {
+        ping.Value = current;
+    }
+
 }
+    
     public enum PlayerState
     {
         Grounded = 0,
         Jumping = 1,
-        Hooked = 2,
-        OnAir= 3
+        Hooked = 2
     }
 
 
