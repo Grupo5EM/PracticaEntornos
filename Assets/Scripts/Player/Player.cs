@@ -14,6 +14,7 @@ public class Player : NetworkBehaviour
     // https://docs-multiplayer.unity3d.com/netcode/current/basics/networkvariable
     public NetworkVariable<PlayerState> State;
     public NetworkVariable<int> vida;
+    [SerializeField] public NetworkVariable<bool> disparando;
 
     [SerializeField] private int playerID;
     public int PlayerID => playerID;
@@ -26,11 +27,12 @@ public class Player : NetworkBehaviour
     [SerializeField] List<RuntimeAnimatorController> listSkins;
     [SerializeField] Text playerName;
 
-
-    private UIManager uiVida;
+    
+    //private UIManager uiVida;
     public List<Transform> startPositions; 
     //Variable para el modo DeatMatch
-    public int kills=0;
+    public NetworkVariable<int> bajas;
+    public NetworkVariable<int> muertes;
 
 
     #endregion
@@ -41,7 +43,7 @@ public class Player : NetworkBehaviour
     {
 
 
-        Debug.Log("Despert?);
+        Debug.Log("Despert");
         Debug.Log(IsLocalPlayer);
         gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
         playerAnimator = GetComponent<Animator>();
@@ -51,6 +53,10 @@ public class Player : NetworkBehaviour
         State = new NetworkVariable<PlayerState>();
         
         vida = new NetworkVariable<int>(0,NetworkVariableReadPermission.Everyone,NetworkVariableWritePermission.Server);
+        bajas = new NetworkVariable<int>(0);
+        muertes = new NetworkVariable<int>(0);
+
+        disparando = new NetworkVariable<bool>(false);
 
         uiVida = GameObject.Find("UIManager").GetComponent<UIManager>();
 
@@ -63,6 +69,9 @@ public class Player : NetworkBehaviour
         // https://docs-multiplayer.unity3d.com/netcode/current/api/Unity.Netcode.NetworkVariable-1.OnValueChangedDelegate
         State.OnValueChanged += OnPlayerStateValueChanged;
         vida.OnValueChanged += OnPlayerLifeValueChanged;
+        bajas.OnValueChanged += OnPlayerBajasValueChanged;
+        muertes.OnValueChanged += OnPlayerMuertesValueChanged;
+        disparando.OnValueChanged += OnPlayerDisparandoValueChanged;
     }
 
     private void OnDisable()
@@ -72,6 +81,9 @@ public class Player : NetworkBehaviour
 
         State.OnValueChanged -= OnPlayerStateValueChanged;
         vida.OnValueChanged -= OnPlayerLifeValueChanged;
+        bajas.OnValueChanged -= OnPlayerBajasValueChanged;
+        muertes.OnValueChanged -= OnPlayerMuertesValueChanged;
+        disparando.OnValueChanged -= OnPlayerDisparandoValueChanged;
     }
 
     #endregion
@@ -146,6 +158,7 @@ public class Player : NetworkBehaviour
         UpdatePlayerStateServerRpc(PlayerState.Grounded);
         vida.Value = 0;
         uiVida.UpdateLifeUI(vida.Value);
+        disparando.Value = false;
 
     }
 
@@ -248,13 +261,31 @@ public class Player : NetworkBehaviour
         vida.Value = current;
         //this.uiVida.UpdateLifeUI(this.vida.Value);
     }
+
+    void OnPlayerDisparandoValueChanged(bool previous, bool current)
+    {
+        disparando.Value = current;
+    }
+
+    void OnPlayerBajasValueChanged(int previous, int current)
+    {
+        bajas.Value = current;
+        //this.uiVida.UpdateLifeUI(this.vida.Value);
+    }
+
+    void OnPlayerMuertesValueChanged(int previous, int current)
+    {
+        muertes.Value = current;
+        //this.uiVida.UpdateLifeUI(this.vida.Value);
+    }
     #endregion
 }
     public enum PlayerState
     {
         Grounded = 0,
         Jumping = 1,
-        Hooked = 2
+        Hooked = 2,
+        OnAir= 3
     }
 
 

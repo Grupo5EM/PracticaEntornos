@@ -55,6 +55,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] RawImage[] heartsUI = new RawImage[3];
     [SerializeField] private Text bajasJugador;
     [SerializeField] private Text informacionBajas;
+
     #endregion
 
     #region Unity Event Functions
@@ -64,7 +65,6 @@ public class UIManager : MonoBehaviour
     {
 
         transport = (UnityTransport)networkManager.NetworkConfig.NetworkTransport;
-
     }
 
 
@@ -118,12 +118,17 @@ public class UIManager : MonoBehaviour
         }
 
     }
-    private void FinPartida(string ganador)
-    {
-        menuVictoria.SetActive(true);
-        TextoFinal.text = ganador+" Os ha pegado una paliza";
+    //private void FinPartida()
+    //{
+    //    TextoFinal.text = " ";
+    //    player.GetComponent<InputHandler>().enabled = false;
+    //    menuVictoria.SetActive(true);
+    //    for (int i = 0; i < lista.Length; i++)
+    //    {
+    //        TextoFinal.text += lista[i] + " " + lista[i].bajas + " " + lista[i].muertes;
+    //    }
 
-    }
+    //}
     private void JugarHost()
     {
         //playerScript = player.GetComponent<Player>();
