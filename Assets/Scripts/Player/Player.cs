@@ -1,4 +1,4 @@
-<<using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Cinemachine;
@@ -115,8 +115,7 @@ public class Player : NetworkBehaviour
             ConfigurePositions();
             ConfigureControls();
             playerID = clientID;
-            
-           
+
         } else
         {
             playerName.text = playerNameValue.Value.ToString();
@@ -192,6 +191,9 @@ public class Player : NetworkBehaviour
         this.transform.position = startPositions[nextPosition].position;
     }
 
+
+  
+
     void ResetValues()
     {
         vida.Value = 0;
@@ -200,6 +202,7 @@ public class Player : NetworkBehaviour
         deaths.Value = 0;
 
     }
+
 
 
     #endregion
