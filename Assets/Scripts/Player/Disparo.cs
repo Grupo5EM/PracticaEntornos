@@ -1,30 +1,32 @@
 using UnityEngine;
 using Unity.Netcode;
+using System.Collections;
 
 public class Disparo : NetworkBehaviour
 {
     InputHandler handler;
     Transform playerTransform;
     [SerializeField] Material material;
-    Player thisPlayer;
-    LineRenderer bulletRenderer;
-    [SerializeField] GameManager gameManager;
-    float espera = 1f;
 
+    Player player;
+    LineRenderer bulletRenderer;
+    bool esp;
+    [SerializeField] GameManager gameManager;
 
     private void Awake()
     {
         handler = GetComponent<InputHandler>();
-        thisPlayer = GetComponent<Player>();
         gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
 
-        bulletRenderer = gameObject.GetComponent<LineRenderer>();
-        bulletRenderer.startWidth = .03f;
-        bulletRenderer.endWidth = .03f;
+        bulletRenderer = new GameObject().AddComponent<LineRenderer>();
+
+        bulletRenderer.startWidth = .02f;
+        bulletRenderer.endWidth = .02f;
         bulletRenderer.material = material;
-        bulletRenderer.sortingOrder = 3;
+        //ropeRenderer.sortingOrder = 3;
         bulletRenderer.enabled = false;
 
+        player = GetComponent<Player>();
         playerTransform = transform;
     }
 
@@ -44,15 +46,18 @@ public class Disparo : NetworkBehaviour
 
     void ShootWeaponServerRpc(Vector2 input, int playerShooting)
     {
+        //devuelve un array con todos los gameobjects con los que ha colisionado
         var direction = (input - (Vector2)playerTransform.position).normalized;
         RaycastHit2D[] hits = Physics2D.RaycastAll(playerTransform.position, direction);
+        //si el segundo gameobject es un player hace la logica
 
         if (hits[1].collider.gameObject.GetComponent<CapsuleCollider2D>())
         {
+            //renderizado de bala
             Debug.DrawRay(playerTransform.position, direction, Color.green);
             var anchor = hits[1].centroid;
             bulletRenderer.SetPosition(1, anchor);
-
+            //cogemos el jugador que ha sido hiteao y le baja la vida en la ui y en el player
             Player hiteao = hits[1].collider.gameObject.GetComponent<Player>();
             hiteao.vida.Value += 1;
 
@@ -68,20 +73,21 @@ public class Disparo : NetworkBehaviour
             hiteao.UpdateVidaClientRpc(clientRpcParams);
 
         }
+
         UpdateBulletClientRpc(hits[1].centroid);
-        while (espera >= 0)
-        {
-            espera -= Time.deltaTime;
-        }
-        espera = 1;
-        //RemoveBulletClientRpc();
+        StartCoroutine(nameof(WaitingTime),.3f);
     }
 
     [ClientRpc]
-    void UpdateBulletClientRpc(Vector2 bullet)
+    void UpdateBulletClientRpc(Vector2 input)
     {
+        bulletRenderer.SetPosition(0, playerTransform.position);
+        bulletRenderer.SetPosition(1, input);
+
         bulletRenderer.enabled = true;
-        bulletRenderer.SetPosition(1, bullet);
+        
+        
+
     }
 
     [ClientRpc]
@@ -90,7 +96,13 @@ public class Disparo : NetworkBehaviour
         bulletRenderer.enabled = false;
     }
 
+    IEnumerator WaitingTime(float time)
+    {
+        
+        yield return new WaitForSeconds(time);
 
+        RemoveBulletClientRpc();
+    }
     void checkDeath(Player shotPlayer)
     {
         if (shotPlayer.vida.Value == 6)
@@ -101,10 +113,10 @@ public class Disparo : NetworkBehaviour
             shotPlayer.ConfigurePositions();
 
             //Cambios en el jugador que ha disparado 
-            thisPlayer.kills.Value += 1;
+            player.kills.Value += 1;
 
             //Lanzar JUGADOR 1 ha matado a JUGADOR 2
-            var player1 = thisPlayer.playerNameValue.Value.ToString();
+            var player1 = player.playerNameValue.Value.ToString();
             var player2 = shotPlayer.playerNameValue.Value.ToString();
 
             gameManager.showKillServer(player1, player2);

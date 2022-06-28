@@ -47,7 +47,7 @@ public class GrapplingHook : NetworkBehaviour
         rope.enableCollision = true;
         rope.enabled = false;
 
-        
+
 
         playerTransform = transform;
         layer = LayerMask.GetMask("Obstacles");
@@ -144,7 +144,7 @@ public class GrapplingHook : NetworkBehaviour
         }
     }
 
-    
+
     #endregion
 
     #region ClientRPC

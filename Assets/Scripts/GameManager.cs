@@ -8,7 +8,7 @@ using System;
 
 public class GameManager : NetworkBehaviour
 {
-    
+
     [SerializeField] NetworkManager networkManager;
     [SerializeField] GameObject playerPrefab;
     [SerializeField] int skinID;
@@ -17,9 +17,14 @@ public class GameManager : NetworkBehaviour
     [SerializeField] ulong client;
     [SerializeField] Text playerName;
     [SerializeField] List<Player> playerList;
-    [SerializeField]  public Player clientPlayer;
-    [SerializeField] PlayerController clientPlayerController;
+
+
+
+
+    [SerializeField] public Player clientPlayer;    
     public int connectedPlayers = 0;
+    bool matchStarted = false;
+    public bool isHost = false;
 
     [Header("In Game")]
     [SerializeField] Text player1;
@@ -31,40 +36,27 @@ public class GameManager : NetworkBehaviour
     [SerializeField] Text listMenuPing;
     [SerializeField] Text listMenuKills;
     [SerializeField] Text listMenuDeaths;
-
+    [Header("Calentamiento")]
+    [SerializeField] GameObject calentamientoText;
+    [SerializeField] GameObject pulsaR;
+    [SerializeField] GameObject listoText;
 
     private void Awake()
-    {            
-        networkManager.OnClientConnectedCallback += ConnectionManagerServerRpc;
+    {
+      networkManager.OnClientConnectedCallback += connectionManager;
+      networkManager.OnServerStarted += serverStarted;
 
-        
     }
 
 
     private void OnEnable()
-    {        
-       
+    {
 
-
-
-    }    
+    }
     private void OnDisable()
     {
-        //networkManager.OnClientConnectedCallback -= OnClientConnected;
-        
+
     }
-
-
-    /*private void OnClientConnected(ulong clientID)
-    {
-        if (networkManager.IsServer)
-        {
-            var player = Instantiate(playerPrefab);
-            player.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientID);
-            
-        }
-        
-    } */
 
     public void setSkinID(int skin)
     {
@@ -83,77 +75,151 @@ public class GameManager : NetworkBehaviour
 
     public Text checkName()
     {
-        if (playerName == null)
+        try
         {
-            playerName.text = "Player";
+            if (playerName == null)
+            {
+                playerName.text = "Player";
+            }
         }
+        catch
+        {
+            playerName = clientPlayer.playerName;
+            playerName.text = "Player";
+        }      
         return playerName;
     }
 
-    [ServerRpc (RequireOwnership = false)]
-    private void ConnectionManagerServerRpc(ulong clientID) 
+
+    void connectionManager(ulong clientID)
+    {      
+        if (!IsServer)
+        {
+            ConnectionManagerServerRpc(clientID);          
+        }
+    }
+
+    void serverStarted()
     {
-        CheckDisconnectedPlayersServerRpc();
+        if (IsHost)
+        {
+            hostConnectionManager(NetworkManager.ServerClientId);
+        }
+    }
+
+    void hostConnectionManager(ulong clientID)
+    {
         connectedPlayers++;
-        Debug.Log(connectedPlayers);
-        if(connectedPlayers <= maxPlayers) {
-            NetworkObject newPlayer = NetworkManager.Singleton.ConnectedClients[clientID].PlayerObject;
-            var player = newPlayer.GetComponent<Player>();
-            clientPlayer = player;
-            clientPlayerController = newPlayer.GetComponent<PlayerController>();
-            clientPlayer.isConnected = true;
-            clientPlayer.playerID = clientID;
-            playerList.Add(clientPlayer);            
+        NetworkObject newPlayer = NetworkManager.Singleton.ConnectedClients[clientID].PlayerObject;
+        var player = newPlayer.GetComponent<Player>();
+        player.isConnected = true;
+        player.playerID = clientID;
+        playerList.Add(player);
+    }
+
+
+    [ServerRpc(RequireOwnership = false)]
+    private void ConnectionManagerServerRpc(ulong clientID)
+    {
+        if (matchStarted == false) {
+            CheckDisconnectedPlayersServerRpc();
+            connectedPlayers++;
+            if (connectedPlayers <= maxPlayers)
+            {
+                NetworkObject newPlayer = NetworkManager.Singleton.ConnectedClients[clientID].PlayerObject;
+                var player = newPlayer.GetComponent<Player>();                
+                player.isConnected = true;
+                player.playerID = clientID;
+                playerList.Add(player);
+            }
+            else
+            {
+                networkManager.DisconnectClient(clientID);
+                connectedPlayers--;
+            }
         }
         else
         {
-            networkManager.DisconnectClient(clientID);            
-            connectedPlayers--;
+            networkManager.DisconnectClient(clientID);
         }
-        
+
+
     }
 
-    [ServerRpc (RequireOwnership = false)]
-  
-    
+
+    [ServerRpc(RequireOwnership = false)]
+
     private void CheckDisconnectedPlayersServerRpc()
     {
-        List<int> disconnectedID = new List<int>(); 
+        List<int> disconnectedID = new List<int>();
+        List<Player> disconnectedPlayers = new List<Player>();
         for (int i = 0; i < playerList.Count; i++) {
             try
             {
                 if (NetworkManager.Singleton.ConnectedClients[playerList[i].playerID] == null)
                 {
-                    
+
                 }
             } catch (KeyNotFoundException exception)
             {
                 Debug.Log("ID no encontrado, jugador desconectado");
                 int disconnected = i;
+                Player disconnectedPlayer = playerList[i];
+                disconnectedPlayers.Add(disconnectedPlayer);
                 Debug.Log(disconnected);
                 disconnectedID.Add(disconnected);
             }
         }
 
-        Debug.Log("Llega aqui");
         if (disconnectedID.Count != 0)
         {
             Debug.Log("Comprobacion de disconnected");
-            for(int j = 0; j < disconnectedID.Count; j++)
+            for (int j = 0; j < disconnectedPlayers.Count; j++)
             {
-                playerList.RemoveAt(disconnectedID[j]);
+                playerList.Remove(disconnectedPlayers[j]);
                 connectedPlayers--;
             }
         }
-        
+
     }
-   
+
+    public void initialText()
+    {
+        calentamientoText.SetActive(true);
+        pulsaR.SetActive(true);
+    }
+
+    public void setReadyText()
+    {
+        pulsaR.SetActive(false);
+        listoText.SetActive(true);
+    }
+
+    [ClientRpc]
+    public void setReadyTextClientRpc()
+    {
+        pulsaR.SetActive(false);
+        calentamientoText.SetActive(false);
+        listoText.SetActive(false);
+    }
+
+    [ServerRpc]
+    public void setRoundServerRpc(){
+        
+        for (int i = 0; i < playerList.Count; i++)
+        {
+            playerList[i].StartRoundPlayer();
+        }
+    }
 
     public void SetReady()
     {
-        Debug.Log("Listo");        
+        
         if (CheckReady() == true)
         {
+
+            setReadyTextClientRpc();
+            matchStarted = true;
             for (int i = 0; i < playerList.Count; i++)
             {
                 playerList[i].StartMatchPlayer();
