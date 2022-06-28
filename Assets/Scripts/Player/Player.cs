@@ -57,10 +57,7 @@ public class Player : NetworkBehaviour
         State = new NetworkVariable<PlayerState>();
         
         vida = new NetworkVariable<int>(0,NetworkVariableReadPermission.Everyone,NetworkVariableWritePermission.Server);
-        bajas = new NetworkVariable<int>(0);
-        muertes = new NetworkVariable<int>(0);
-
-        disparando = new NetworkVariable<bool>(false);
+        
 
         idSkin = new NetworkVariable<int>();
 
@@ -167,7 +164,6 @@ public class Player : NetworkBehaviour
         UpdatePlayerStateServerRpc(PlayerState.Grounded);
         vida.Value = 0;
         uiVida.UpdateLifeUI(vida.Value);
-        disparando.Value = false;
 
     }
 

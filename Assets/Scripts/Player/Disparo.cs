@@ -16,7 +16,6 @@ public class Disparo : NetworkBehaviour
     private void Awake()
     {
         handler = GetComponent<InputHandler>();
-        thisPlayer = GetComponent<Player>();
         gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
 
         bulletRenderer = new GameObject().AddComponent<LineRenderer>();
