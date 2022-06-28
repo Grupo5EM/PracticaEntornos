@@ -1,4 +1,4 @@
-using System.Collections;
+<<using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Cinemachine;
@@ -34,6 +34,7 @@ public class Player : NetworkBehaviour
     public bool isReady = false;
 
 
+
     public List<Transform> startPositions; 
     //Variable para el modo DeatMatch
     
@@ -46,7 +47,6 @@ public class Player : NetworkBehaviour
     private void Awake()
     {
 
-       
         gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
         playerAnimator = GetComponent<Animator>();
         NetworkManager.OnClientConnectedCallback += ConfigurePlayer;
@@ -55,6 +55,7 @@ public class Player : NetworkBehaviour
         State = new NetworkVariable<PlayerState>();
         
         vida = new NetworkVariable<int>(0,NetworkVariableReadPermission.Everyone,NetworkVariableWritePermission.Server);
+        
 
         idSkin = new NetworkVariable<int>();
 
@@ -75,6 +76,7 @@ public class Player : NetworkBehaviour
         // https://docs-multiplayer.unity3d.com/netcode/current/api/Unity.Netcode.NetworkVariable-1.OnValueChangedDelegate
         State.OnValueChanged += OnPlayerStateValueChanged;
         vida.OnValueChanged += OnPlayerLifeValueChanged;
+
         idSkin.OnValueChanged += OnIDSkinValueChanged;
 
         kills.OnValueChanged += OnKillsValueChanged;
@@ -90,6 +92,7 @@ public class Player : NetworkBehaviour
 
         State.OnValueChanged -= OnPlayerStateValueChanged;
         vida.OnValueChanged -= OnPlayerLifeValueChanged;
+
         idSkin.OnValueChanged = OnIDSkinValueChanged;
 
         kills.OnValueChanged -= OnKillsValueChanged;
@@ -277,6 +280,7 @@ public class Player : NetworkBehaviour
         vida.Value = current;
         //this.uiVida.UpdateLifeUI(this.vida.Value);
     }
+
 
     void OnIDSkinValueChanged(int previous, int current)
     {

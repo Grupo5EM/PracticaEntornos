@@ -407,6 +407,7 @@ MonoBehaviour:
     m_InternalValue: 0
   vida:
     m_InternalValue: 0
+
   idSkin:
     m_InternalValue: 0
   playerNameValue:
@@ -492,6 +493,7 @@ MonoBehaviour:
   - {fileID: 9100000, guid: 9d8cd007e2fbf8f4e8283b7de1a9220a, type: 2}
   - {fileID: 9100000, guid: 479dd0d64371b2e4496d5a8cfbb47b8c, type: 2}
   - {fileID: 9100000, guid: f79b5ca4e14bbcd448454334388dc085, type: 2}
+
   playerName: {fileID: 1620394804763630380}
   isConnected: 0
   isReady: 0
@@ -502,6 +504,7 @@ MonoBehaviour:
   - {fileID: 6131281986404266320, guid: 8eab3712d8868e140982cd3d0b058853, type: 3}
   - {fileID: 2181424952324982225, guid: 6937cdb633dc23d42a713acecfba3ef2, type: 3}
   - {fileID: 7620481371295036752, guid: 24f94f352c97ee54dbbf98bd5ba5072a, type: 3}
+
 --- !u!114 &169404036177825696
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -616,6 +619,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f6e6c65243d1b4949a40b6704489359d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+
   handler: {fileID: 0}
   anim: {fileID: 0}
   playerName: {fileID: 0}
@@ -632,7 +636,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 02a463fa969cac149a1d07d91d5d36be, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  material: {fileID: 2100000, guid: c636fd2bad8a2a64490da5c38c70d6fa, type: 2}
+  material: {fileID: 2100000, guid: 62011c0749839dc498fc750a2e99800a, type: 2}
 --- !u!114 &3112279240633773370
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -821,5 +825,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e9437e589c8dab540a43ced97053020b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  material: {fileID: 2100000, guid: c636fd2bad8a2a64490da5c38c70d6fa, type: 2}
+  material: {fileID: 2100000, guid: 58b8ccbf4d7abe847b7f2bab442b875a, type: 2}
   gameManager: {fileID: 0}
+
+  
+
