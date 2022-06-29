@@ -200,6 +200,7 @@ public class Player : NetworkBehaviour
 
         kills.Value = 0;
         deaths.Value = 0;
+        uiVida.UpdateLifeUI(0);
 
     }
 
