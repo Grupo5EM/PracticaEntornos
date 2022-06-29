@@ -26,7 +26,7 @@ public class InputHandler : NetworkBehaviour
     public UnityEvent OnJump;
     public UnityEvent OnReady;
     public UnityEvent OnShowMenu;
-    public UnityEvent<Vector2, int> OnFire;
+    public UnityEvent<Vector2> OnFire;
 
     Vector2 CachedMoveInput { get; set; }
 
@@ -97,7 +97,7 @@ public class InputHandler : NetworkBehaviour
             if (readyPerformed) { Debug.Log("Ready ha sido performed"); Ready();  }
             if (showMenuPerformed) { Debug.Log("Showmenu ha sido performed"); ShowMenu(); }
             if (jumpPerformed) {  Jump(); }
-            if (_fire.WasPerformedThisFrame()) { Fire(screenPoint, (int)OwnerClientId); }
+            if (_fire.WasPerformedThisFrame()) { Fire(screenPoint); }
 
             HookRender(CachedMoveInput);
             //Termina la ejecuci? del Update, por lo tanto pasamos al Fixed Update. En este punto, el estado todav? sigue siendo jumping
@@ -139,9 +139,9 @@ public class InputHandler : NetworkBehaviour
         OnHookRender?.Invoke(input);
     }
 
-    void Fire(Vector2 input, int playerID)
+    void Fire(Vector2 input)
     {
-        OnFire?.Invoke(input, playerID);
+        OnFire?.Invoke(input);
     }
 
     void MousePosition(Vector2 input)

@@ -226,10 +226,10 @@ public class Player : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void UpdateVidaClientRpc(ClientRpcParams clientRpcParams=default)
+    public void UpdateVidaClientRpc(int vidaServer, ClientRpcParams clientRpcParams=default)
     {
-        //this.vida.Value = this.vida.Value+1;
-        this.uiVida.UpdateLifeUI(this.vida.Value);
+        
+        this.uiVida.UpdateLifeUI(vidaServer);
     }
 
     [ServerRpc]
@@ -281,7 +281,6 @@ public class Player : NetworkBehaviour
     void OnPlayerLifeValueChanged(int previous, int current)
     {
         vida.Value = current;
-        //this.uiVida.UpdateLifeUI(this.vida.Value);
     }
 
 

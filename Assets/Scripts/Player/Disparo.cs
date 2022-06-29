@@ -44,7 +44,7 @@ public class Disparo : NetworkBehaviour
 
     [ServerRpc]
 
-    void ShootWeaponServerRpc(Vector2 input, int playerShooting)
+    void ShootWeaponServerRpc(Vector2 input)
     {
         //devuelve un array con todos los gameobjects con los que ha colisionado
         var direction = (input - (Vector2)playerTransform.position).normalized;
@@ -70,7 +70,7 @@ public class Disparo : NetworkBehaviour
                     TargetClientIds = new ulong[] { hiteao.OwnerClientId }
                 }
             };
-            hiteao.UpdateVidaClientRpc(clientRpcParams);
+            hiteao.UpdateVidaClientRpc(hiteao.vida.Value, clientRpcParams);
 
         }
 
@@ -111,7 +111,7 @@ public class Disparo : NetworkBehaviour
             shotPlayer.deaths.Value += 1;
             shotPlayer.vida.Value = 0;
             shotPlayer.ConfigurePositions();
-
+           
             //Cambios en el jugador que ha disparado 
             player.kills.Value += 1;
 

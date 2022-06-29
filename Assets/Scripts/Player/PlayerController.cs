@@ -220,8 +220,12 @@ public class PlayerController : NetworkBehaviour
 
     void setClientReady()
     {
-        gameManager.setReadyText();
-        setPlayerReadyServerRpc();
+        if (gameManager.matchStarted.Value != true)
+        {
+            gameManager.setReadyText();
+            setPlayerReadyServerRpc();
+        }
+        
     }
     #endregion
 

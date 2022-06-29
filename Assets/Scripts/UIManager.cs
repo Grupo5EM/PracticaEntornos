@@ -23,7 +23,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Button buttonClient;
     [SerializeField] private Button buttonServer;
     [SerializeField] private InputField inputFieldIP;
-    public NetworkVariable<float> time;
+
 
 
     //Añadimos por aquí más elementos para el lobby 
@@ -45,21 +45,18 @@ public class UIManager : MonoBehaviour
     [SerializeField] public Text contador;
     // private float time = 60f;
     private bool empezado = false;
-    private int rondaActual = 1;
+    public int rondaActual = 1;
     [SerializeField] public Text Ronda;
 
 
     [Header("Final de Juego")]
     [SerializeField] private GameObject menuVictoria;
-    [SerializeField] private Text TextoFinal;
-
-
+    [SerializeField] public GameObject TextoFinal;
 
     [Header("In-Game HUD")]
     [SerializeField] private GameObject inGameHUD;
     [SerializeField] RawImage[] heartsUI = new RawImage[3];
-    [SerializeField] private Text bajasJugador;
-    [SerializeField] private Text informacionBajas;
+
 
     #endregion
 
@@ -71,18 +68,9 @@ public class UIManager : MonoBehaviour
 
         transport = (UnityTransport)networkManager.NetworkConfig.NetworkTransport;
 
-        time = new NetworkVariable<float>(60f);
+
 
     }
-
-    private void Update()
-    {
-        if (empezado == true)
-        {
-            ContadorTiempo();
-        }
-    }
-
 
     private void Start()
     {
@@ -99,9 +87,9 @@ public class UIManager : MonoBehaviour
 
         ActivateMainMenu();
 
-        TextoFinal.enabled = false;
+        TextoFinal.SetActive(false);
 
-        
+
 
     }
 
@@ -109,84 +97,45 @@ public class UIManager : MonoBehaviour
 
     #region UI Related Methods
 
-    private void ContadorTiempo()
+    public void mostrarTiempo()
     {
+        contador.text = "Tiempo: " + gameManager.time.Value.ToString("f0");
+        Ronda.text = "Ronda:  " + gameManager.rondaActual.Value;
 
-        time.Value -= Time.deltaTime;
-        contador.text = "Tiempo: " + time.Value.ToString("f0");
-        Ronda.text = "Ronda:  " + rondaActual;
-        if (time.Value == 0 || time.Value < 0)
-        {
-            rondaActual++;
-            //paralizarrondas
-            FinRonda();
-
-
-            time.Value = 65f;
-            if (rondaActual == 4)
-            {
-                //llamar a Fin de partida completo
-                FinPartida();
-            }
-        }
     }
-    private void FinRonda()
+
+    public void desactivarTiempo()
     {
-
-        ParalizarJugador();
-        MostrarPosiciones();
-        Invoke("ParalizarJugador", 5.0f);
-        Invoke("MostrarPosiciones", 4.0f);
-        //Cambiar posiciones
-        gameManager.setRoundServerRpc();
-
-    }
-    private void MostrarPosiciones(){
-        gameManager.showGameList();
+        contador.enabled = false;
+        Ronda.enabled = false;
     }
 
-    private void ParalizarJugador()
-    {
-        if (gameManager.clientPlayer.GetComponent<InputHandler>().enabled == false)
-        {
-            gameManager.clientPlayer.GetComponent<InputHandler>().enabled = true;
-        }
-        else
-        {
-            gameManager.clientPlayer.GetComponent<InputHandler>().enabled = false;
-
-        }
-    }
-    private void FinPartida()
-    {
-        gameManager.showGameList();
-        TextoFinal.enabled = true;
-        ParalizarJugador();
-
-    }
     private void SkinPersonaje(int color)
     {
         //Aquí se pasaria por paramtro el color de la skin que se quiere para modificar luego el animator
         if (color == 0)
-        {          
+        {
             //playerController.anim.runtimeAnimatorController = prefabSkins[0];
             gameManager.setSkinID(0);
             Debug.Log("Skin cambiada a verde");
-        } else if (color == 1)
-        {            
+        }
+        else if (color == 1)
+        {
             //playerController.anim.runtimeAnimatorController = prefabSkins[1];
             gameManager.setSkinID(1);
             Debug.Log("Skin cambiada a azul");
-        } else if (color == 2)
-        {           
+        }
+        else if (color == 2)
+        {
             //playerController.anim.runtimeAnimatorController = prefabSkins[2];
             gameManager.setSkinID(2);
             Debug.Log("Skin cambiada a rosa");
-        } else if (color == 3)
-        {           
+        }
+        else if (color == 3)
+        {
             //playerController.anim.runtimeAnimatorController = prefabSkins[3];
             gameManager.setSkinID(3);
-            Debug.Log("Skin cambiada a naranja");            
+            Debug.Log("Skin cambiada a naranja");
         }
 
     }
@@ -221,19 +170,6 @@ public class UIManager : MonoBehaviour
 
         inGameHUD.SetActive(false);
     }
-    private void ActualizarBajas(int bajas)
-    {
-        bajasJugador.text = ""+bajas;
-    }
-    //Activamos el menu
-    private void MenuPersonalizacion()
-    {
-        
-        mainMenu.SetActive(false);
-        menuPersonalizacion.SetActive(true);
-        
-    }
-    //En este metodo informaremos que jugador a matado a quien
 
     private void ActivateInGameHUD()
     {
@@ -279,15 +215,20 @@ public class UIManager : MonoBehaviour
                 heartsUI[1].texture = hearts[0].texture;
                 heartsUI[2].texture = hearts[1].texture;
                 break;
+            case 0:
+                heartsUI[0].texture = hearts[0].texture;
+                heartsUI[1].texture = hearts[0].texture;
+                heartsUI[2].texture = hearts[0].texture;
+                break;
         }
     }
 
 
     public void ChangeName()
     {
-        
+
         gameManager.setName(nombreUsuario.textComponent);
-        
+
     }
 
     #endregion
@@ -300,7 +241,7 @@ public class UIManager : MonoBehaviour
         menuPersonalizacion.SetActive(true);
         //NetworkManager.Singleton.StartHost();        
         preparado.onClick.AddListener(JugarHost);
-        
+
 
         //ActivateInGameHUD();
     }
@@ -308,9 +249,9 @@ public class UIManager : MonoBehaviour
     private void OkeyCliente()
     {
         //Si todos los clientes han dicho que está listo habitar boton de listo al host
-       // if ()
+        // if ()
         //{
-          //  preparado.IsActive();
+        //  preparado.IsActive();
         //}
 
     }
@@ -340,34 +281,19 @@ public class UIManager : MonoBehaviour
         menuPersonalizacion.SetActive(true);
         //NetworkManager.Singleton.StartClient();
         preparado.onClick.AddListener(JugarClient);
-        
-        
+
+
 
     }
     private void StartServer()
     {
         NetworkManager.Singleton.StartServer();
         ActivateInGameHUD();
-       
-    }
-
-
-    private void OnEnable()
-    {
-        time.OnValueChanged += OnTimeValueChanged;
-    }
-        private void OnDisable()
-    {
-
-
-        time.OnValueChanged -= OnTimeValueChanged;
-    }
-    void OnTimeValueChanged(float previous, float current)
-    {
-        time.Value = current;
-    }
-        #endregion
 
     }
+
+    #endregion
+
+}
 
 

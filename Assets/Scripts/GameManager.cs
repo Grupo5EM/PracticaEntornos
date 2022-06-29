@@ -11,19 +11,20 @@ public class GameManager : NetworkBehaviour
 
     [SerializeField] NetworkManager networkManager;
     [SerializeField] GameObject playerPrefab;
+    [SerializeField] UIManager uiManager;
     [SerializeField] int skinID;
     [SerializeField] int maxPlayers;
     [SerializeField] int minPlayers;
     [SerializeField] ulong client;
     [SerializeField] Text playerName;
     [SerializeField] List<Player> playerList;
-
-
-
+    public NetworkVariable<float> time;
+    public NetworkVariable<int> rondaActual;
+    public NetworkVariable<bool> matchStarted;
 
     [SerializeField] public Player clientPlayer;    
     public int connectedPlayers = 0;
-    bool matchStarted = false;
+    
     public bool isHost = false;
 
     [Header("In Game")]
@@ -46,18 +47,94 @@ public class GameManager : NetworkBehaviour
       networkManager.OnClientConnectedCallback += connectionManager;
       networkManager.OnServerStarted += serverStarted;
 
+      time = new NetworkVariable<float>(60f);
+      rondaActual = new NetworkVariable<int>(1);
     }
 
+    private void Update()
+    {
+        if (matchStarted.Value == true)
+        {
+            if (IsServer)
+            {
+                ContadorTiempo();
+            }
+            if (IsClient)
+            {
+                uiManager.mostrarTiempo();
+            }
+        }
+    }
 
     private void OnEnable()
     {
-
+        time.OnValueChanged += OnTimeValueChanged;
+        rondaActual.OnValueChanged += OnRoundValueChanged;
     }
     private void OnDisable()
     {
-
+        time.OnValueChanged -= OnTimeValueChanged;
+        rondaActual.OnValueChanged -= OnRoundValueChanged;
     }
 
+    public void ContadorTiempo()
+    {
+
+        time.Value -= Time.deltaTime;
+        
+        if (time.Value == 0 || time.Value < 0)
+        {
+            rondaActual.Value += 1;
+            //paralizarrondas
+            finRondaClientRpc();
+            setRoundServer();
+
+            time.Value = 65f;
+            if (rondaActual.Value == 4)
+            {
+                //llamar a Fin de partida completo
+                finPartidaClientRpc();
+            }
+        }
+    }
+
+    [ClientRpc]
+    private void finRondaClientRpc()
+    {
+        ParalizarJugador();
+        MostrarPosiciones();
+        Invoke("ParalizarJugador", 5.0f);
+        Invoke("MostrarPosiciones", 4.0f);               
+    }
+
+    private void MostrarPosiciones()
+    {        
+        showGameList();       
+    }
+
+    private void ParalizarJugador()
+    {
+        if (clientPlayer.GetComponent<InputHandler>().enabled == false)
+        {
+            clientPlayer.GetComponent<InputHandler>().enabled = true;
+        }
+        else
+        {
+            clientPlayer.GetComponent<InputHandler>().enabled = false;
+        }
+    }
+
+    [ClientRpc]
+    private void finPartidaClientRpc()
+    {
+
+        uiManager.desactivarTiempo();
+        showGameList();
+       
+        uiManager.TextoFinal.SetActive(true);
+        ParalizarJugador();
+
+    }
     public void setSkinID(int skin)
     {
         skinID = skin;
@@ -121,7 +198,7 @@ public class GameManager : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     private void ConnectionManagerServerRpc(ulong clientID)
     {
-        if (matchStarted == false) {
+        if (matchStarted.Value == false) {
             CheckDisconnectedPlayersServerRpc();
             connectedPlayers++;
             if (connectedPlayers <= maxPlayers)
@@ -211,7 +288,7 @@ public class GameManager : NetworkBehaviour
         {
 
             setReadyTextClientRpc();
-            matchStarted = true;
+            matchStarted.Value = true;
             for (int i = 0; i < playerList.Count; i++)
             {
                 playerList[i].StartMatchPlayer();
@@ -239,8 +316,8 @@ public class GameManager : NetworkBehaviour
 
         return serverReady;
     }
-    [ServerRpc(RequireOwnership = false)]
-    public void setRoundServerRpc()
+
+    public void setRoundServer()
     {
 
         for (int i = 0; i < playerList.Count; i++)
@@ -352,5 +429,16 @@ public class GameManager : NetworkBehaviour
             int ping = (int)NetworkManager.Singleton.NetworkConfig.NetworkTransport.GetCurrentRtt(playerList[i].playerID);
             playerList[i].ping.Value = ping;
         }
+    }
+
+    void OnTimeValueChanged(float previous, float current)
+    {
+        time.Value = current;
+    }
+
+
+    void OnRoundValueChanged(int previous, int current)
+    {
+        rondaActual.Value = current;
     }
 }
