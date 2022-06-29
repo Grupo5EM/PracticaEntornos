@@ -426,8 +426,16 @@ public class GameManager : NetworkBehaviour
     {
         for (int i = 0; i < playerList.Count; i++)
         {
-            int ping = (int)NetworkManager.Singleton.NetworkConfig.NetworkTransport.GetCurrentRtt(playerList[i].playerID);
-            playerList[i].ping.Value = ping;
+            try
+            {
+                int ping = (int)NetworkManager.Singleton.NetworkConfig.NetworkTransport.GetCurrentRtt(playerList[i].playerID);
+                playerList[i].ping.Value = ping;
+            }
+            catch (KeyNotFoundException keyException)
+            {
+                playerList[i].ping.Value = 0;
+            }
+            
         }
     }
 
