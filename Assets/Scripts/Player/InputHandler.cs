@@ -94,9 +94,9 @@ public class InputHandler : NetworkBehaviour
             if (hookPerformed) { Hook(screenPoint); }          
             
           //Como la tecla espacio ha sido presionada, se ejecuta el salto y por tanto su m?odo
-            if (readyPerformed) { Debug.Log("Ready ha sido performed"); Ready();  }
-            if (showMenuPerformed) { Debug.Log("Showmenu ha sido performed"); ShowMenu(); }
-            if (jumpPerformed) {  Jump(); }
+            if (readyPerformed) { Ready();  }
+            if (showMenuPerformed) { ShowMenu(); }
+            if (jumpPerformed) { Jump(); }
             if (_fire.WasPerformedThisFrame()) { Fire(screenPoint); }
 
             HookRender(CachedMoveInput);

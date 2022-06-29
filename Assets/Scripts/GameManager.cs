@@ -9,23 +9,25 @@ using System;
 public class GameManager : NetworkBehaviour
 {
 
+    #region Variables
+    [Header("Instances/Dependencies")]
     [SerializeField] NetworkManager networkManager;
-    [SerializeField] GameObject playerPrefab;
     [SerializeField] UIManager uiManager;
+    [SerializeField] public Player clientPlayer;
+
+    [Header("Manager Properties")]
     [SerializeField] int skinID;
     [SerializeField] int maxPlayers;
     [SerializeField] int minPlayers;
     [SerializeField] ulong client;
-    [SerializeField] Text playerName;
+    [SerializeField] Text newPlayerName;
     [SerializeField] List<Player> playerList;
-    public NetworkVariable<float> time;
-    public NetworkVariable<int> rondaActual;
-    public NetworkVariable<bool> matchStarted;
-
-    [SerializeField] public Player clientPlayer;    
     public int connectedPlayers = 0;
-    
-    public bool isHost = false;
+
+    [Header("NetworkVariables")]
+    public NetworkVariable<float> time;
+    public NetworkVariable<int> currentRound;
+    public NetworkVariable<bool> matchStarted;
 
     [Header("In Game")]
     [SerializeField] Text player1;
@@ -37,18 +39,23 @@ public class GameManager : NetworkBehaviour
     [SerializeField] Text listMenuPing;
     [SerializeField] Text listMenuKills;
     [SerializeField] Text listMenuDeaths;
-    [Header("Calentamiento")]
+
+    [Header("Warm-Up Texts")]
     [SerializeField] GameObject calentamientoText;
-    [SerializeField] GameObject pulsaR;
-    [SerializeField] GameObject listoText;
+    [SerializeField] GameObject pressR;
+    [SerializeField] GameObject readyText;
+
+    #endregion
+
+    #region Unity Event Functions
 
     private void Awake()
     {
-      networkManager.OnClientConnectedCallback += connectionManager;
-      networkManager.OnServerStarted += serverStarted;
+      networkManager.OnClientConnectedCallback += ConnectionManager;
+      networkManager.OnServerStarted += ServerStarted;
 
       time = new NetworkVariable<float>(60f);
-      rondaActual = new NetworkVariable<int>(1);
+      currentRound = new NetworkVariable<int>(1);
     }
 
     private void Update()
@@ -57,11 +64,11 @@ public class GameManager : NetworkBehaviour
         {
             if (IsServer)
             {
-                ContadorTiempo();
+                TimeManager();
             }
             if (IsClient)
             {
-                uiManager.mostrarTiempo();
+                uiManager.ShowTime();
             }
         }
     }
@@ -69,225 +76,87 @@ public class GameManager : NetworkBehaviour
     private void OnEnable()
     {
         time.OnValueChanged += OnTimeValueChanged;
-        rondaActual.OnValueChanged += OnRoundValueChanged;
+        currentRound.OnValueChanged += OnRoundValueChanged;
     }
     private void OnDisable()
     {
         time.OnValueChanged -= OnTimeValueChanged;
-        rondaActual.OnValueChanged -= OnRoundValueChanged;
+        currentRound.OnValueChanged -= OnRoundValueChanged;
     }
 
-    public void ContadorTiempo()
-    {
+    #endregion
 
-        time.Value -= Time.deltaTime;
-        
-        if (time.Value == 0 || time.Value < 0)
+    #region Game Managing Methods
+
+
+    public void ShowGameList()
+    {
+        if (listMenuActive == false)
         {
-            rondaActual.Value += 1;
-            //paralizarrondas
-            finRondaClientRpc();
-            setRoundServer();
-
-            time.Value = 65f;
-            if (rondaActual.Value == 4)
-            {
-                //llamar a Fin de partida completo
-                finPartidaClientRpc();
-            }
-        }
-    }
-
-    [ClientRpc]
-    private void finRondaClientRpc()
-    {
-        ParalizarJugador();
-        MostrarPosiciones();
-        Invoke("ParalizarJugador", 5.0f);
-        Invoke("MostrarPosiciones", 4.0f);               
-    }
-
-    private void MostrarPosiciones()
-    {        
-        showGameList();       
-    }
-
-    private void ParalizarJugador()
-    {
-        if (clientPlayer.GetComponent<InputHandler>().enabled == false)
-        {
-            clientPlayer.GetComponent<InputHandler>().enabled = true;
+            listMenuActive = true;
+            updatePlayerListServerRpc();
+            listMenu.SetActive(true);
         }
         else
         {
-            clientPlayer.GetComponent<InputHandler>().enabled = false;
+            listMenu.SetActive(false);
+            listMenuActive = false;
         }
-    }
-
-    [ClientRpc]
-    private void finPartidaClientRpc()
-    {
-
-        uiManager.desactivarTiempo();
-        showGameList();
-       
-        uiManager.TextoFinal.SetActive(true);
-        ParalizarJugador();
 
     }
-    public void setSkinID(int skin)
+
+    public void SetSkinID(int skin)
     {
         skinID = skin;
     }
 
-    public int checkSkin()
+    public int CheckSkin()
     {
         return skinID;
     }
 
-    public void setName(Text newName)
+    public void SetName(Text newName)
     {
-        playerName = newName;
+        newPlayerName = newName;
     }
 
-    public Text checkName()
+
+    public Text CheckName()
     {
         try
         {
-            if (playerName == null)
+            if (newPlayerName == null)
             {
-                playerName.text = "Player";
+                newPlayerName.text = "Player";
             }
         }
         catch
         {
-            playerName = clientPlayer.playerName;
-            playerName.text = "Player";
-        }      
-        return playerName;
+            newPlayerName = clientPlayer.playerNameText;
+            newPlayerName.text = "Player";
+        }
+        return newPlayerName;
     }
 
-
-    void connectionManager(ulong clientID)
-    {      
-        if (!IsServer)
-        {
-            ConnectionManagerServerRpc(clientID);          
-        }
-    }
-
-    void serverStarted()
-    {
-        if (IsHost)
-        {
-            hostConnectionManager(NetworkManager.ServerClientId);
-        }
-    }
-
-    void hostConnectionManager(ulong clientID)
-    {
-        connectedPlayers++;
-        NetworkObject newPlayer = NetworkManager.Singleton.ConnectedClients[clientID].PlayerObject;
-        var player = newPlayer.GetComponent<Player>();
-        player.isConnected = true;
-        player.playerID = clientID;
-        playerList.Add(player);
-    }
-
-
-    [ServerRpc(RequireOwnership = false)]
-    private void ConnectionManagerServerRpc(ulong clientID)
-    {
-        if (matchStarted.Value == false) {
-            CheckDisconnectedPlayersServerRpc();
-            connectedPlayers++;
-            if (connectedPlayers <= maxPlayers)
-            {
-                NetworkObject newPlayer = NetworkManager.Singleton.ConnectedClients[clientID].PlayerObject;
-                var player = newPlayer.GetComponent<Player>();                
-                player.isConnected = true;
-                player.playerID = clientID;
-                playerList.Add(player);
-            }
-            else
-            {
-                networkManager.DisconnectClient(clientID);
-                connectedPlayers--;
-            }
-        }
-        else
-        {
-            networkManager.DisconnectClient(clientID);
-        }
-
-
-    }
-
-
-    [ServerRpc(RequireOwnership = false)]
-
-    private void CheckDisconnectedPlayersServerRpc()
-    {
-        List<int> disconnectedID = new List<int>();
-        List<Player> disconnectedPlayers = new List<Player>();
-        for (int i = 0; i < playerList.Count; i++) {
-            try
-            {
-                if (NetworkManager.Singleton.ConnectedClients[playerList[i].playerID] == null)
-                {
-
-                }
-            } catch (KeyNotFoundException exception)
-            {
-                Debug.Log("ID no encontrado, jugador desconectado");
-                int disconnected = i;
-                Player disconnectedPlayer = playerList[i];
-                disconnectedPlayers.Add(disconnectedPlayer);
-                Debug.Log(disconnected);
-                disconnectedID.Add(disconnected);
-            }
-        }
-
-        if (disconnectedID.Count != 0)
-        {
-            Debug.Log("Comprobacion de disconnected");
-            for (int j = 0; j < disconnectedPlayers.Count; j++)
-            {
-                playerList.Remove(disconnectedPlayers[j]);
-                connectedPlayers--;
-            }
-        }
-
-    }
-
-    public void initialText()
+    public void InitialText()
     {
         calentamientoText.SetActive(true);
-        pulsaR.SetActive(true);
+        pressR.SetActive(true);
     }
 
-    public void setReadyText()
+    public void SetReadyText()
     {
-        pulsaR.SetActive(false);
-        listoText.SetActive(true);
+        pressR.SetActive(false);
+        readyText.SetActive(true);
     }
 
-    [ClientRpc]
-    public void setReadyTextClientRpc()
-    {
-        pulsaR.SetActive(false);
-        calentamientoText.SetActive(false);
-        listoText.SetActive(false);
-    }
-
-   
     public void SetReady()
     {
-        
+
         if (CheckReady() == true)
         {
 
-            setReadyTextClientRpc();
+            SetReadyTextClientRpc();
             matchStarted.Value = true;
             for (int i = 0; i < playerList.Count; i++)
             {
@@ -312,12 +181,84 @@ public class GameManager : NetworkBehaviour
                 }
             }
         }
-        
+
 
         return serverReady;
     }
 
-    public void setRoundServer()
+    public void TimeManager()
+    {
+
+        time.Value -= Time.deltaTime;
+        
+        if (time.Value == 0 || time.Value < 0)
+        {
+            currentRound.Value += 1;
+            finRondaClientRpc();
+            SetRoundServer();
+
+            time.Value = 65f;
+            if (currentRound.Value == 4)
+            {
+                MatchEndedClientRpc();
+            }
+        }
+    }
+
+    private void FreezePlayer()
+    {
+        if (clientPlayer.GetComponent<InputHandler>().enabled == false)
+        {
+            clientPlayer.GetComponent<InputHandler>().enabled = true;
+        }
+        else
+        {
+            clientPlayer.GetComponent<InputHandler>().enabled = false;
+        }
+    }
+
+    public void ShowKillServer(string shootingPlayerS, string shotPlayerS)
+    {
+        player1.text = shootingPlayerS;
+        player2.text = shotPlayerS;
+
+        ShowKillClientRpc(shootingPlayerS, shotPlayerS);
+    }
+
+    void HideKill()
+    {
+        killTexts.SetActive(false);
+    }
+
+    #endregion
+
+    #region Network Methods
+
+    void ConnectionManager(ulong clientID)
+    {
+        if (!IsServer)
+        {
+            ConnectionManagerServerRpc(clientID);
+        }
+    }
+
+    void ServerStarted()
+    {
+        if (IsHost)
+        {
+            HostConnectionManager(NetworkManager.ServerClientId);
+        }
+    }
+
+    void HostConnectionManager(ulong clientID)
+    {
+        connectedPlayers++;
+        NetworkObject newPlayer = NetworkManager.Singleton.ConnectedClients[clientID].PlayerObject;
+        var player = newPlayer.GetComponent<Player>();
+        player.playerID = clientID;
+        playerList.Add(player);
+    }
+    public void SetRoundServer()
     {
 
         for (int i = 0; i < playerList.Count; i++)
@@ -326,84 +267,7 @@ public class GameManager : NetworkBehaviour
         }
     }
 
-    public void showKillServer(string shootingPlayerS, string shotPlayerS)
-    {
-        player1.text = shootingPlayerS;
-        player2.text = shotPlayerS;
-
-        showKillClientRpc(shootingPlayerS, shotPlayerS);
-    }
-
-    [ClientRpc]
-    void showKillClientRpc(string shootingPlayerC, string shotPlayerC)
-    {
-        player1.text = shootingPlayerC;
-        player2.text = shotPlayerC;
-
-        killTexts.SetActive(true);
-        Invoke("hideKill", 7);
-    }
-
-    
-    void hideKill()
-    {
-        killTexts.SetActive(false);
-    }
-
-    public void showGameList()
-    {
-        if (listMenuActive == false)
-        {
-            listMenuActive = true;
-            updatePlayerListServerRpc();
-            listMenu.SetActive(true);
-        }
-        else
-        {
-            listMenu.SetActive(false);
-            listMenuActive = false;
-        }
-        
-    }
-
-    [ServerRpc (RequireOwnership = false)]
-    void updatePlayerListServerRpc()
-    {
-        organisePlayerList();
-        updatePingServerRpc();
-        resetPlayerListClientRpc();
-
-        for (int i = 0; i < playerList.Count; i++)
-        {
-           string nameServer = playerList[i].playerNameValue.Value.ToString();
-           int pingServer = playerList[i].ping.Value;
-           int killsServer = playerList[i].kills.Value;
-           int deathsServer = playerList[i].deaths.Value;
-           updatePlayerListClientRpc(nameServer, pingServer, killsServer, deathsServer);
-        }
-            
-    }
-
-    [ClientRpc]
-    void resetPlayerListClientRpc()
-    {
-        listMenuNames.text = "";
-        listMenuPing.text = "";
-        listMenuKills.text = "";
-        listMenuDeaths.text = "";               
-    }
-
-    [ClientRpc]
-    void updatePlayerListClientRpc(string name, int ping, int kills, int deaths)
-    {
-        listMenuNames.text += name + "\n";
-        listMenuPing.text += ping + "\n";
-        listMenuKills.text += kills + "\n";
-        listMenuDeaths.text += deaths + "\n";
-    }
-      
-
-    void organisePlayerList()
+    void OrganisePlayerList()
     {
         for (int j = 1; j < playerList.Count; j++)
         {
@@ -421,6 +285,98 @@ public class GameManager : NetworkBehaviour
         }
     }
 
+    #endregion
+
+    #region RPC
+
+    #region ServerRPC
+
+
+    [ServerRpc(RequireOwnership = false)]
+    private void ConnectionManagerServerRpc(ulong clientID)
+    {
+        if (matchStarted.Value == false)
+        {
+            CheckDisconnectedPlayersServerRpc();
+            connectedPlayers++;
+            if (connectedPlayers <= maxPlayers)
+            {
+                NetworkObject newPlayer = NetworkManager.Singleton.ConnectedClients[clientID].PlayerObject;
+                var player = newPlayer.GetComponent<Player>();
+                player.playerID = clientID;
+                playerList.Add(player);
+            }
+            else
+            {
+                networkManager.DisconnectClient(clientID);
+                connectedPlayers--;
+            }
+        }
+        else
+        {
+            networkManager.DisconnectClient(clientID);
+        }
+
+
+    }
+
+
+    [ServerRpc(RequireOwnership = false)]
+
+    private void CheckDisconnectedPlayersServerRpc()
+    {
+        List<int> disconnectedID = new List<int>();
+        List<Player> disconnectedPlayers = new List<Player>();
+        for (int i = 0; i < playerList.Count; i++)
+        {
+            try
+            {
+                if (NetworkManager.Singleton.ConnectedClients[playerList[i].playerID] == null)
+                {
+
+                }
+            }
+            catch (KeyNotFoundException exception)
+            {
+                Debug.Log("ID no encontrado, jugador desconectado");
+                int disconnected = i;
+                Player disconnectedPlayer = playerList[i];
+                disconnectedPlayers.Add(disconnectedPlayer);
+                Debug.Log(disconnected);
+                disconnectedID.Add(disconnected);
+            }
+        }
+
+        if (disconnectedID.Count != 0)
+        {
+            Debug.Log("Comprobacion de disconnected");
+            for (int j = 0; j < disconnectedPlayers.Count; j++)
+            {
+                playerList.Remove(disconnectedPlayers[j]);
+                connectedPlayers--;
+            }
+        }
+
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    void updatePlayerListServerRpc()
+    {
+        OrganisePlayerList();
+        updatePingServerRpc();
+        ResetPlayerListClientRpc();
+
+        for (int i = 0; i < playerList.Count; i++)
+        {
+            string nameServer = playerList[i].playerName.Value.ToString();
+            int pingServer = playerList[i].ping.Value;
+            int killsServer = playerList[i].kills.Value;
+            int deathsServer = playerList[i].deaths.Value;
+            UpdatePlayerListClientRpc(nameServer, pingServer, killsServer, deathsServer);
+        }
+
+    }
+
     [ServerRpc]
     void updatePingServerRpc()
     {
@@ -435,9 +391,76 @@ public class GameManager : NetworkBehaviour
             {
                 playerList[i].ping.Value = 0;
             }
-            
+
         }
     }
+
+    #endregion
+
+    #region ClientRPC
+
+    [ClientRpc]
+    private void finRondaClientRpc()
+    {
+        FreezePlayer();
+        ShowGameList();
+        Invoke("FreezePlayer", 5.0f);
+        Invoke("ShowGameList", 4.0f);
+    }
+
+    [ClientRpc]
+    private void MatchEndedClientRpc()
+    {
+
+        uiManager.HideTime();
+        ShowGameList();
+
+        uiManager.finalText.SetActive(true);
+        FreezePlayer();
+
+    }
+
+    [ClientRpc]
+    public void SetReadyTextClientRpc()
+    {
+        pressR.SetActive(false);
+        calentamientoText.SetActive(false);
+        readyText.SetActive(false);
+        uiManager.UpdateLifeUI(0);
+    }
+
+    [ClientRpc]
+    void ShowKillClientRpc(string shootingPlayerC, string shotPlayerC)
+    {
+        player1.text = shootingPlayerC;
+        player2.text = shotPlayerC;
+
+        killTexts.SetActive(true);
+        Invoke("HideKill", 7);
+    }
+
+    [ClientRpc]
+    void ResetPlayerListClientRpc()
+    {
+        listMenuNames.text = "";
+        listMenuPing.text = "";
+        listMenuKills.text = "";
+        listMenuDeaths.text = "";
+    }
+
+    [ClientRpc]
+    void UpdatePlayerListClientRpc(string name, int ping, int kills, int deaths)
+    {
+        listMenuNames.text += name + "\n";
+        listMenuPing.text += ping + "\n";
+        listMenuKills.text += kills + "\n";
+        listMenuDeaths.text += deaths + "\n";
+    }
+    #endregion
+
+    #endregion
+
+    #region Netcode Methods
 
     void OnTimeValueChanged(float previous, float current)
     {
@@ -447,6 +470,8 @@ public class GameManager : NetworkBehaviour
 
     void OnRoundValueChanged(int previous, int current)
     {
-        rondaActual.Value = current;
+        currentRound.Value = current;
     }
+
+    #endregion
 }

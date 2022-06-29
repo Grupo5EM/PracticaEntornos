@@ -12,33 +12,27 @@ public class Player : NetworkBehaviour
     #region Variables
 
     // https://docs-multiplayer.unity3d.com/netcode/current/basics/networkvariable
+    [Header ("Network Variables")]
     public NetworkVariable<PlayerState> State;
     public NetworkVariable<int> vida;
     public NetworkVariable<int> idSkin;
-    public NetworkVariable<FixedString64Bytes> playerNameValue;
+    public NetworkVariable<FixedString64Bytes> playerName;
     public NetworkVariable<int> kills;
     public NetworkVariable<int> deaths;
     public NetworkVariable<int> ping;
     
 
-    [SerializeField] public ulong playerID;   
-
-
-    [SerializeField] private UIManager uiVida;
-    [SerializeField] GameManager gameManager;
-
+    [Header ("Player Properties")]
+    [SerializeField] public ulong playerID;
     Animator playerAnimator;
     [SerializeField] List<RuntimeAnimatorController> listSkins;
-    public Text playerName;
-    public bool isConnected = false;
+    public Text playerNameText;
     public bool isReady = false;
+    public List<Transform> startPositions;
 
-
-
-    public List<Transform> startPositions; 
-    //Variable para el modo DeatMatch
-    
-
+    [Header ("Instances/Dependencies")]
+    [SerializeField] private UIManager lifeUI;
+    [SerializeField] GameManager gameManager;
 
     #endregion
 
@@ -50,7 +44,6 @@ public class Player : NetworkBehaviour
         gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
         playerAnimator = GetComponent<Animator>();
         NetworkManager.OnClientConnectedCallback += ConfigurePlayer;
-        //NetworkManager.ConnectionApprovalCallback += StartPlayer;
         
         State = new NetworkVariable<PlayerState>();
         
@@ -59,13 +52,13 @@ public class Player : NetworkBehaviour
 
         idSkin = new NetworkVariable<int>();
 
-        playerNameValue = new NetworkVariable<FixedString64Bytes>();
+        playerName = new NetworkVariable<FixedString64Bytes>();
 
         kills = new NetworkVariable<int>(0);
         deaths = new NetworkVariable<int>(0);
         ping = new NetworkVariable<int>(0);
 
-        uiVida = GameObject.Find("UIManager").GetComponent<UIManager>();
+        lifeUI = GameObject.Find("UIManager").GetComponent<UIManager>();
 
     }
 
@@ -118,47 +111,12 @@ public class Player : NetworkBehaviour
 
         } else
         {
-            playerName.text = playerNameValue.Value.ToString();
+            playerNameText.text = playerName.Value.ToString();
             playerAnimator.runtimeAnimatorController = listSkins[idSkin.Value];
         }
 
-
-        /*if (IsServer)
-        {
-            print("se conecto jugador");
-            ConfigurePlayer();
-            playerID = NetworkManager.Singleton.ConnectedClientsList.Count;
-            ConfigureCamera();
-            ConfigureControls();
-        }*/
     }
 
-   
-
-    public void StartMatchPlayer()
-    {
-        ConfigurePositions();
-        ResetValues();
-    }
-    public void StartRoundPlayer()
-    {
-        ConfigurePositions();
-    }
-    void ConfigureSkin()
-    {
-        var skinID = gameManager.checkSkin();
-        playerAnimator.runtimeAnimatorController = listSkins[skinID];
-        ConfigureSkinServerRpc(skinID);
-    }
-
-    void ConfigureName()
-    {
-
-        
-        string newName = gameManager.checkName().text;        
-        playerName.text = newName;           
-        ConfigureNameServerRpc(newName);        
-    }
 
     void ConfigureInitialPlayerState()
     {
@@ -166,9 +124,9 @@ public class Player : NetworkBehaviour
         ConfigureName();
         UpdatePlayerStateServerRpc(PlayerState.Grounded);
         vida.Value = 0;
-        uiVida.UpdateLifeUI(vida.Value);
-
+        lifeUI.UpdateLifeUI(vida.Value);
     }
+
 
     void ConfigureCamera()
     {
@@ -186,13 +144,38 @@ public class Player : NetworkBehaviour
 
     public void ConfigurePositions()
     {
-        int nextPosition = UnityEngine.Random.Range(0, startPositions.Count);
-        Debug.Log("Spawn: " + nextPosition);
+        int nextPosition = UnityEngine.Random.Range(0, startPositions.Count);  
         this.transform.position = startPositions[nextPosition].position;
     }
 
+    void ConfigureSkin()
+    {
+        var skinID = gameManager.CheckSkin();
+        playerAnimator.runtimeAnimatorController = listSkins[skinID];
+        ConfigureSkinServerRpc(skinID);
+    }
 
-  
+    void ConfigureName()
+    {
+        string newName = gameManager.CheckName().text;
+        playerNameText.text = newName;
+        ConfigureNameServerRpc(newName);
+    }
+
+
+
+    public void StartMatchPlayer()
+    {
+        ConfigurePositions();
+        ResetValues();
+    }
+
+
+    public void StartRoundPlayer()
+    {
+        ConfigurePositions();
+    }
+
 
     void ResetValues()
     {
@@ -200,11 +183,8 @@ public class Player : NetworkBehaviour
 
         kills.Value = 0;
         deaths.Value = 0;
-        uiVida.UpdateLifeUI(0);
 
     }
-
-
 
     #endregion
 
@@ -226,12 +206,7 @@ public class Player : NetworkBehaviour
         this.vida.Value = vida;
     }
 
-    [ClientRpc]
-    public void UpdateVidaClientRpc(int vidaServer, ClientRpcParams clientRpcParams=default)
-    {
-        
-        this.uiVida.UpdateLifeUI(vidaServer);
-    }
+ 
 
     [ServerRpc]
     public void ConfigureSkinServerRpc(int skinID)
@@ -244,8 +219,8 @@ public class Player : NetworkBehaviour
     [ServerRpc]
     public void ConfigureNameServerRpc(string clientName)
     {
-        playerNameValue.Value = clientName;
-        playerName.text = playerNameValue.Value.ToString();
+        playerName.Value = clientName;
+        playerNameText.text = playerName.Value.ToString();
         ConfigureNameClientRpc(clientName);
     }
 
@@ -254,6 +229,12 @@ public class Player : NetworkBehaviour
 
     #region ClientRPC
 
+
+    [ClientRpc]
+    public void UpdateLifeClientRpc(int vidaServer, ClientRpcParams clientRpcParams = default)
+    {
+        this.lifeUI.UpdateLifeUI(vidaServer);
+    }
     [ClientRpc]
     public void ConfigureSkinClientRpc(int skinID)
     {
@@ -262,10 +243,8 @@ public class Player : NetworkBehaviour
     [ClientRpc]
     public void ConfigureNameClientRpc(string serverName)
     {
-        playerName.text = serverName;
+        playerNameText.text = serverName;
     }
-
-
     #endregion
 
     #endregion
@@ -289,7 +268,7 @@ public class Player : NetworkBehaviour
     {
         idSkin.Value = current;
     }
-    #endregion
+    
 
     void OnKillsValueChanged(int previous, int current)
     {
@@ -305,10 +284,11 @@ public class Player : NetworkBehaviour
     {
         ping.Value = current;
     }
-
+    #endregion
 }
-    
-    public enum PlayerState
+
+
+public enum PlayerState
     {
         Grounded = 0,
         Jumping = 1,

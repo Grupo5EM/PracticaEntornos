@@ -409,7 +409,7 @@ MonoBehaviour:
     m_InternalValue: 0
   idSkin:
     m_InternalValue: 0
-  playerNameValue:
+  playerName:
     m_InternalValue:
       utf8LengthInBytes: 0
       bytes:
@@ -485,15 +485,12 @@ MonoBehaviour:
   ping:
     m_InternalValue: 0
   playerID: 0
-  uiVida: {fileID: 0}
-  gameManager: {fileID: 0}
   listSkins:
   - {fileID: 9100000, guid: e0d7adc8be511a14dbdab77d72cda5fb, type: 2}
   - {fileID: 9100000, guid: 9d8cd007e2fbf8f4e8283b7de1a9220a, type: 2}
   - {fileID: 9100000, guid: 479dd0d64371b2e4496d5a8cfbb47b8c, type: 2}
   - {fileID: 9100000, guid: f79b5ca4e14bbcd448454334388dc085, type: 2}
-  playerName: {fileID: 1620394804763630380}
-  isConnected: 0
+  playerNameText: {fileID: 1620394804763630380}
   isReady: 0
   startPositions:
   - {fileID: 2364838769126004091, guid: bf1c45d35740ef74faf5e681c95e35ab, type: 3}
@@ -502,6 +499,8 @@ MonoBehaviour:
   - {fileID: 6131281986404266320, guid: 8eab3712d8868e140982cd3d0b058853, type: 3}
   - {fileID: 2181424952324982225, guid: 6937cdb633dc23d42a713acecfba3ef2, type: 3}
   - {fileID: 7620481371295036752, guid: 24f94f352c97ee54dbbf98bd5ba5072a, type: 3}
+  lifeUI: {fileID: 0}
+  gameManager: {fileID: 0}
 --- !u!114 &169404036177825696
 MonoBehaviour:
   m_ObjectHideFlags: 0

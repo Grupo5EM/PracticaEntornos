@@ -28,14 +28,12 @@ public class PlayerController : NetworkBehaviour
     Rigidbody2D rb;
     new CapsuleCollider2D collider;
     public Animator anim;
-    public Text playerName;
     SpriteRenderer spriteRenderer;
 
     [SerializeField] GameManager gameManager;
     // https://docs-multiplayer.unity3d.com/netcode/current/basics/networkvariable
     NetworkVariable<bool> FlipSprite;
 
-    private UIManager _uIManager;
     #endregion
 
     #region Unity Event Functions
@@ -58,8 +56,8 @@ public class PlayerController : NetworkBehaviour
         handler.OnMove.AddListener(UpdatePlayerVisualsServerRpc);       
         handler.OnMoveFixedUpdate.AddListener(UpdatePlayerPositionServerRpc);
         handler.OnJump.AddListener(PerformJumpServerRpc);
-        handler.OnReady.AddListener(setClientReady);
-        handler.OnShowMenu.AddListener(gameManager.showGameList);
+        handler.OnReady.AddListener(SetClientReady);
+        handler.OnShowMenu.AddListener(gameManager.ShowGameList);
         FlipSprite.OnValueChanged += OnFlipSpriteValueChanged;
     }
 
@@ -67,8 +65,8 @@ public class PlayerController : NetworkBehaviour
     {
         handler.OnMove.RemoveListener(UpdatePlayerVisualsServerRpc);
         handler.OnJump.RemoveListener(PerformJumpServerRpc);
-        handler.OnReady.RemoveListener(setClientReady);
-        handler.OnShowMenu.RemoveListener(gameManager.showGameList);
+        handler.OnReady.RemoveListener(SetClientReady);
+        handler.OnShowMenu.RemoveListener(gameManager.ShowGameList);
         handler.OnMoveFixedUpdate.RemoveListener(UpdatePlayerPositionServerRpc);
 
         FlipSprite.OnValueChanged -= OnFlipSpriteValueChanged;
@@ -122,10 +120,8 @@ public class PlayerController : NetworkBehaviour
 
     }
     
- 
-
     [ServerRpc]
-    void setPlayerReadyServerRpc()
+    void SetPlayerReadyServerRpc()
     {
         player.isReady = true;
         gameManager.SetReady();
@@ -186,13 +182,6 @@ public class PlayerController : NetworkBehaviour
         }
     }
 
-    //[ServerRpc]
-    //void UpdateVidaServerRpc(NetworkVariable<ulong> idCliente, int vidaJugador)
-    //{
-    //    _uIManager.UpdateLifeUI(vidaJugador);
-        
-    //}
-
     #endregion
 
     #endregion
@@ -218,12 +207,13 @@ public class PlayerController : NetworkBehaviour
 
     bool IsGrounded => collider.IsTouching(filter);
 
-    void setClientReady()
+
+    void SetClientReady()
     {
         if (gameManager.matchStarted.Value != true)
         {
-            gameManager.setReadyText();
-            setPlayerReadyServerRpc();
+            gameManager.SetReadyText();
+            SetPlayerReadyServerRpc();
         }
         
     }

@@ -4,14 +4,17 @@ using System.Collections;
 
 public class Disparo : NetworkBehaviour
 {
+    #region Variables
     InputHandler handler;
     Transform playerTransform;
     [SerializeField] Material material;
-
     Player player;
     LineRenderer bulletRenderer;
-    bool esp;
     [SerializeField] GameManager gameManager;
+
+    #endregion
+
+    #region Unity Event Functions
 
     private void Awake()
     {
@@ -29,7 +32,7 @@ public class Disparo : NetworkBehaviour
         player = GetComponent<Player>();
         playerTransform = transform;
     }
-
+  
 
     private void OnEnable()
     {
@@ -41,7 +44,34 @@ public class Disparo : NetworkBehaviour
         handler.OnFire.RemoveListener(ShootWeaponServerRpc);
     }
 
+    #endregion
 
+    #region Methods
+    void CheckDeath(Player shotPlayer)
+    {
+        if (shotPlayer.vida.Value == 6)
+        {
+            //Cambios en el jugador que ha recibido el disparo 
+            shotPlayer.deaths.Value += 1;
+            shotPlayer.vida.Value = 0;
+            shotPlayer.ConfigurePositions();
+
+            //Cambios en el jugador que ha disparado 
+            player.kills.Value += 1;
+
+            //Lanzar JUGADOR 1 ha matado a JUGADOR 2
+            var player1 = player.playerName.Value.ToString();
+            var player2 = shotPlayer.playerName.Value.ToString();
+
+            gameManager.ShowKillServer(player1, player2);
+        }
+    }
+
+    #endregion
+
+    #region RPC
+
+    #region ServerRPC
     [ServerRpc]
 
     void ShootWeaponServerRpc(Vector2 input)
@@ -61,7 +91,7 @@ public class Disparo : NetworkBehaviour
             Player hiteao = hits[1].collider.gameObject.GetComponent<Player>();
             hiteao.vida.Value += 1;
 
-            checkDeath(hiteao);
+            CheckDeath(hiteao);
 
             ClientRpcParams clientRpcParams = new ClientRpcParams
             {
@@ -70,7 +100,7 @@ public class Disparo : NetworkBehaviour
                     TargetClientIds = new ulong[] { hiteao.OwnerClientId }
                 }
             };
-            hiteao.UpdateVidaClientRpc(hiteao.vida.Value, clientRpcParams);
+            hiteao.UpdateLifeClientRpc(hiteao.vida.Value, clientRpcParams);
 
         }
 
@@ -78,6 +108,9 @@ public class Disparo : NetworkBehaviour
         StartCoroutine(nameof(WaitingTime),.3f);
     }
 
+    #endregion
+
+    #region ClientRPC
     [ClientRpc]
     void UpdateBulletClientRpc(Vector2 input)
     {
@@ -103,23 +136,7 @@ public class Disparo : NetworkBehaviour
 
         RemoveBulletClientRpc();
     }
-    void checkDeath(Player shotPlayer)
-    {
-        if (shotPlayer.vida.Value == 6)
-        {
-            //Cambios en el jugador que ha recibido el disparo 
-            shotPlayer.deaths.Value += 1;
-            shotPlayer.vida.Value = 0;
-            shotPlayer.ConfigurePositions();
-           
-            //Cambios en el jugador que ha disparado 
-            player.kills.Value += 1;
+    #endregion
 
-            //Lanzar JUGADOR 1 ha matado a JUGADOR 2
-            var player1 = player.playerNameValue.Value.ToString();
-            var player2 = shotPlayer.playerNameValue.Value.ToString();
-
-            gameManager.showKillServer(player1, player2);
-        }
-    }
+    #endregion
 }
