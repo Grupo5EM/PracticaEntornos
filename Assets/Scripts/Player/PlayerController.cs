@@ -53,6 +53,7 @@ public class PlayerController : NetworkBehaviour
 
     private void OnEnable()
     {
+        //Suscrpciones a eventos: si se mueve, si salta, si pulsa la tecla para estar listo...
         handler.OnMove.AddListener(UpdatePlayerVisualsServerRpc);       
         handler.OnMoveFixedUpdate.AddListener(UpdatePlayerPositionServerRpc);
         handler.OnJump.AddListener(PerformJumpServerRpc);
@@ -63,6 +64,7 @@ public class PlayerController : NetworkBehaviour
 
     private void OnDisable()
     {
+        //Desuscripción de eventos
         handler.OnMove.RemoveListener(UpdatePlayerVisualsServerRpc);
         handler.OnJump.RemoveListener(PerformJumpServerRpc);
         handler.OnReady.RemoveListener(SetClientReady);
@@ -96,6 +98,7 @@ public class PlayerController : NetworkBehaviour
     #region ServerRPC
 
     // https://docs-multiplayer.unity3d.com/netcode/current/advanced-topics/message-system/serverrpc
+    //Actualiza las partes visuales: el animator y la orientación del sprite
     [ServerRpc]
     void UpdatePlayerVisualsServerRpc(Vector2 input)
     {
@@ -104,6 +107,7 @@ public class PlayerController : NetworkBehaviour
     }
 
     // https://docs-multiplayer.unity3d.com/netcode/current/advanced-topics/message-system/serverrpc
+    //Actualiza las variables del animator para que cambie de animación
     [ServerRpc]
     void UpdateAnimatorStateServerRpc()
     {
@@ -120,6 +124,7 @@ public class PlayerController : NetworkBehaviour
 
     }
     
+    //Indica al servidor que el jugador está listo y llama al GameManager para que gestione este suceso
     [ServerRpc]
     void SetPlayerReadyServerRpc()
     {
@@ -150,7 +155,6 @@ public class PlayerController : NetworkBehaviour
         rb.velocity = new Vector2(rb.velocity.x, jumpHeight);
         //Y le resta el número de saltos
         _jumpsLeft--;                      
-        //Ahora salta al update del InputHandler, que es donde se ejecuta este método
     }
 
 
@@ -161,20 +165,23 @@ public class PlayerController : NetworkBehaviour
         //Dentro del Fixed Update, comprueba las físicas y por tanto, las colisiones. Como estamos colisionando con el suelo...
         if (IsGrounded)
         {                   
-            //...actualiza la variable y pasa de Jumping a Grounded
+            //...actualiza la variable y  a Grounded
             player.State.Value = PlayerState.Grounded;
+ 
             if (_jumpsLeft == 0)
             {
                 _jumpsLeft = maxJumps;
             }
-            //Ahora el Jump no se vuelve a ejecutar hasta que pulsemos el salto
+           
         }
 
+        //Si no está ni enganchado ni tocando el suelo...
         if (!IsGrounded && player.State.Value != PlayerState.Hooked)
         {
+            //...eso significa que está saltando
             player.State.Value = PlayerState.Jumping;
         }
-
+        //Si no está enganchado, usa las físicas "normales"
         if ((player.State.Value != PlayerState.Hooked))
         {
             
@@ -188,6 +195,7 @@ public class PlayerController : NetworkBehaviour
 
     #region Methods
 
+    //Cambia la el sprite del jugador según la orientación de este
     void UpdateSpriteOrientation(Vector2 input)
     {
         if (input.x < 0)
@@ -200,19 +208,24 @@ public class PlayerController : NetworkBehaviour
         }
     }
 
+    //Método para el cambio de la NetworkVariable
     void OnFlipSpriteValueChanged(bool previous, bool current)
     {
         spriteRenderer.flipX = current;
     }
 
+    //Comprueba si el jugador está tocando el suelo con el ayuda del collider del jugador y la layer del suelo
     bool IsGrounded => collider.IsTouching(filter);
 
-
+    //Este método hace lo necesario para que el cliente se ponga en modo listo y luego llama al Servidor para que se muestre como que está listo y lance todos los métodos relacionados
     void SetClientReady()
     {
+        //Si la partida no ha empezado, es decir, si estamos en el modo de calentamiento...
         if (gameManager.matchStarted.Value != true)
         {
+            //Cambiamos los textos en la interfaz para indicar que estamos listos
             gameManager.SetReadyText();
+            //Llamamos al servidor para que gestione el estar listo
             SetPlayerReadyServerRpc();
         }
         

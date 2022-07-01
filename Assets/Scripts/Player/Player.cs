@@ -67,6 +67,7 @@ public class Player : NetworkBehaviour
     private void OnEnable()
     {
         // https://docs-multiplayer.unity3d.com/netcode/current/api/Unity.Netcode.NetworkVariable-1.OnValueChangedDelegate
+        //Suscripciones a cambios en las NetworkVariables
         State.OnValueChanged += OnPlayerStateValueChanged;
         vida.OnValueChanged += OnPlayerLifeValueChanged;
 
@@ -81,8 +82,6 @@ public class Player : NetworkBehaviour
     private void OnDisable()
       {
         // https://docs-multiplayer.unity3d.com/netcode/current/api/Unity.Netcode.NetworkVariable-1.OnValueChangedDelegate
-
-
         State.OnValueChanged -= OnPlayerStateValueChanged;
         vida.OnValueChanged -= OnPlayerLifeValueChanged;
 
@@ -97,37 +96,46 @@ public class Player : NetworkBehaviour
 
     #region Config Methods
 
+    //Este método se llama cuando el cliente se conecta y configura todo lo que necesita el jugador
     public void ConfigurePlayer(ulong clientID)
     {
-        
+        //Si el jugador es local player
         if (IsLocalPlayer)
         {
-            gameManager.clientPlayer = this;          
+            //Indicamos que es el jugador de este cliente en el game manager
+            gameManager.clientPlayer = this;
+            //Configura las variables iniciales del jugador
             ConfigureInitialPlayerState();
+            //Configura la cámara, los controles y la posición inicial (spawn)
             ConfigureCamera();
             ConfigurePositions();
             ConfigureControls();
+            //Asigna el ID del cliente al jugador
             playerID = clientID;
 
         } else
         {
+            //Si no es el jugador local, asigna el nombre que tiene y la skin que ha seleccionado
             playerNameText.text = playerName.Value.ToString();
             playerAnimator.runtimeAnimatorController = listSkins[idSkin.Value];
         }
 
     }
 
-
+    //Configura los valores iniciales del jugador
     void ConfigureInitialPlayerState()
     {
+        //Configura la skin y el nombre elegidos
         ConfigureSkin();
         ConfigureName();
+        //Pone por defecto el estado Grounded
         UpdatePlayerStateServerRpc(PlayerState.Grounded);
+        //Configura la vida y la UI con sus valores iniciales
         vida.Value = 0;
         lifeUI.UpdateLifeUI(vida.Value);
     }
 
-
+    //Configura la cámara
     void ConfigureCamera()
     {
         // https://docs.unity3d.com/Packages/com.unity.cinemachine@2.6/manual/CinemachineBrainProperties.html
@@ -137,46 +145,55 @@ public class Player : NetworkBehaviour
         virtualCam.Follow = transform;
     }
 
+    //Activa los controles
     void ConfigureControls()
     {
         GetComponent<InputHandler>().enabled = true;
     }
 
+    //Configura el spawn. Elige aleatoriamente una de las 6 posiciones. Sirve también como respawn
     public void ConfigurePositions()
     {
         int nextPosition = UnityEngine.Random.Range(0, startPositions.Count);  
         this.transform.position = startPositions[nextPosition].position;
     }
 
+    //Según la skin que se haya elegido en el menú de personalización, se asigna al jugador
     void ConfigureSkin()
     {
+        //Coge la skin elegida que se ha guardado en el GameManager
         var skinID = gameManager.CheckSkin();
+        //La asigna en el cliente
         playerAnimator.runtimeAnimatorController = listSkins[skinID];
+        //Y actualiza los valores en el servidor
         ConfigureSkinServerRpc(skinID);
     }
 
+    //Según el nombre que se haya elegido en el menú de personalización, se asigna al jugador
     void ConfigureName()
     {
+        //Funciona de la misma manera que el ConfigureSkin, pero con textos
         string newName = gameManager.CheckName().text;
         playerNameText.text = newName;
         ConfigureNameServerRpc(newName);
     }
 
 
-
+    //Si todos los jugadores están ready, se llama a este para que cada jugador cambie la posición y resetea los valores
     public void StartMatchPlayer()
     {
         ConfigurePositions();
         ResetValues();
     }
 
-
+    //Para cuando acabe la ronda
     public void StartRoundPlayer()
     {
         ConfigurePositions();
     }
 
 
+    //Resetea los valores a cero, se usa para cuando empieza la partida después del calentamiento
     void ResetValues()
     {
         vida.Value = 0;
@@ -207,7 +224,7 @@ public class Player : NetworkBehaviour
     }
 
  
-
+    //Actualiza los valores de la skin en el servidor y luego lo retransmite a los demás clientes
     [ServerRpc]
     public void ConfigureSkinServerRpc(int skinID)
     {
@@ -216,6 +233,7 @@ public class Player : NetworkBehaviour
         ConfigureSkinClientRpc(skinID);
     }
 
+    //Igual que el ConfigureSkinServer pero con los nombres
     [ServerRpc]
     public void ConfigureNameServerRpc(string clientName)
     {
@@ -229,17 +247,19 @@ public class Player : NetworkBehaviour
 
     #region ClientRPC
 
-
+    //Actualiza una la UI de las vidas para un cliente en específico
     [ClientRpc]
     public void UpdateLifeClientRpc(int vidaServer, ClientRpcParams clientRpcParams = default)
     {
         this.lifeUI.UpdateLifeUI(vidaServer);
     }
+    //Actualiza la skin en todos los clientes
     [ClientRpc]
     public void ConfigureSkinClientRpc(int skinID)
     {
         playerAnimator.runtimeAnimatorController = listSkins[skinID];
     }
+    //Actualiza el nombre en todos los clientes
     [ClientRpc]
     public void ConfigureNameClientRpc(string serverName)
     {
@@ -250,6 +270,7 @@ public class Player : NetworkBehaviour
     #endregion
 
     #region Netcode Related Methods
+    //Métodos de Netcode para la actualización de los valores de las NetworkVariables
 
     // https://docs-multiplayer.unity3d.com/netcode/current/advanced-topics/message-system/serverrpc
     void OnPlayerStateValueChanged(PlayerState previous, PlayerState current)

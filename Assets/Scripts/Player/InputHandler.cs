@@ -37,6 +37,7 @@ public class InputHandler : NetworkBehaviour
 
     private void Awake()
     {
+        //Asignación de los controles a teclas/input específicos
         _move.AddCompositeBinding("2DVector")
             .With("Up", "<Keyboard>/w")
             .With("Left", "<Keyboard>/a")
@@ -75,12 +76,13 @@ public class InputHandler : NetworkBehaviour
 
     private void Update()
     {
-        //Se ejecuta primero el update, antes que el Fixed Update
+        
         if (IsLocalPlayer)
         {
             CachedMoveInput = _move.ReadValue<Vector2>();
             var mousePosition = _mousePosition.ReadValue<Vector2>();
 
+            //Si alguna de las acciones se ha hecho en este frame...
             var hookPerformed = _hook.WasPerformedThisFrame();
             var jumpPerformed = _jump.WasPerformedThisFrame();
             var readyPerformed = _ready.WasPerformedThisFrame();
@@ -91,22 +93,23 @@ public class InputHandler : NetworkBehaviour
 
             // https://docs.unity3d.com/2020.3/Documentation/ScriptReference/Camera.ScreenToWorldPoint.html
             var screenPoint = Camera.main.ScreenToWorldPoint(mousePosition);
-            if (hookPerformed) { Hook(screenPoint); }          
-            
-          //Como la tecla espacio ha sido presionada, se ejecuta el salto y por tanto su m?odo
+
+
+            //...se llama a alguno de sus métodos para que se ejecute
+            if (hookPerformed) { Hook(screenPoint); }         
             if (readyPerformed) { Ready();  }
             if (showMenuPerformed) { ShowMenu(); }
             if (jumpPerformed) { Jump(); }
             if (_fire.WasPerformedThisFrame()) { Fire(screenPoint); }
 
             HookRender(CachedMoveInput);
-            //Termina la ejecuci? del Update, por lo tanto pasamos al Fixed Update. En este punto, el estado todav? sigue siendo jumping
+            
         }
     }
 
     private void FixedUpdate()
     {
-        //Pasamos al fixed Update, que es donde calcula las f?icas. Al ejecutar este m?odo se mete dentro del UpdatePlayerPositionServer del PlayerController
+        
         MoveFixedUpdate(CachedMoveInput);
     }
 
