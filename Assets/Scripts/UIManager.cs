@@ -31,7 +31,7 @@ public class UIManager : MonoBehaviour
     [Header("Menu Personalización")]
     [SerializeField] private GameObject customizeMenu;
     [SerializeField] private InputField username;
-    //Botones para seleccionar persoanjes
+    //Botones para seleccionar personajes
     [SerializeField] private Button greenButton;
     [SerializeField] private Button blueButton;
     [SerializeField] private Button pinkButton;
@@ -40,7 +40,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Button changeNameButton;
     [SerializeField] public Button readyButton;
 
-
+    //Variables de tiempo y ronda
     [Header("Tiempo y Rondas")]
     [SerializeField] public Text counterText;
     [SerializeField] public Text roundText;
@@ -48,7 +48,7 @@ public class UIManager : MonoBehaviour
 
     [Header("Final de Juego")]
     [SerializeField] public GameObject finalText;
-
+    //Variables para asignar los corazones 
     [Header("In-Game HUD")]
     [SerializeField] private GameObject inGameHUD;
     [SerializeField] RawImage[] heartsUI = new RawImage[3];
@@ -63,7 +63,7 @@ public class UIManager : MonoBehaviour
     {
         transport = (UnityTransport)networkManager.NetworkConfig.NetworkTransport;
     }
-
+    //Inicialicamos  todos los botones del menu principal y de personalización
     private void Start()
     {
         buttonHost.onClick.AddListener(() => HostMenu());
@@ -76,7 +76,7 @@ public class UIManager : MonoBehaviour
         blueButton.onClick.AddListener(() => SkinSelector(1));
         pinkButton.onClick.AddListener(() => SkinSelector(2));
         orangeButton.onClick.AddListener(() => SkinSelector(3));
-
+        //Activamos el menú principal nada más inicializar 
         ActivateMainMenu();
 
         finalText.SetActive(false);
@@ -87,7 +87,7 @@ public class UIManager : MonoBehaviour
 
     #region UI Related Methods
 
-
+    //A este método lo llamamos para poner el menú principal y ocultar el hud 
     private void ActivateMainMenu()
     {
         mainMenu.SetActive(true);
@@ -95,14 +95,14 @@ public class UIManager : MonoBehaviour
         inGameHUD.SetActive(false);
     }
 
-
+    //Metodo para que el host pueda elegir su personaje y nombre
     private void HostMenu()
     {
         mainMenu.SetActive(false);
         customizeMenu.SetActive(true);
         readyButton.onClick.AddListener(StartHost);
     }
-
+    //Metodo para que el cliente pueda elegir su personaje y nombre
     private void ClientMenu()
 
     {
@@ -143,13 +143,14 @@ public class UIManager : MonoBehaviour
         }
 
     }
+    //Al pulsar el boton cambio de nombre guardamos lo introducido
     public void ChangeName()
     {
 
         gameManager.SetName(username.textComponent);
 
     }
-
+    //Llamamos a los elementos del hud cuando entras en la ronda de calentamiento
     private void ActivateInGameHUD()
     {
         mainMenu.SetActive(false);
@@ -159,7 +160,7 @@ public class UIManager : MonoBehaviour
         UpdateLifeUI(0);
     }
 
-
+    //Actualizamos las vidas en función de cada caso, está hecho para que solo haya 3 corazones
     public void UpdateLifeUI(int hitpoints)
     {
         switch (hitpoints)
@@ -201,14 +202,14 @@ public class UIManager : MonoBehaviour
                 break;
         }
     }
-
+    //Mostramos el tiempo y la ronda durante la partida
     public void ShowTime()
     {
         counterText.text = "Tiempo: " + gameManager.time.Value.ToString("f0");
         roundText.text = "Ronda:  " + gameManager.currentRound.Value;
 
     }
-
+    //Ocultamos el tiempo y la ronda cuando se acaba la partida
     public void HideTime()
     {
         counterText.enabled = false;
@@ -220,7 +221,7 @@ public class UIManager : MonoBehaviour
     #region Netcode Related Methods
 
 
-
+    //Metodo para cuando el host entra ya en la sala de calentamiento
     private void StartHost()
     {
 
@@ -232,7 +233,7 @@ public class UIManager : MonoBehaviour
         customizeMenu.SetActive(false);
         inGameHUD.SetActive(true);
     }
-
+    //Metodo para cuando el cliente entra ya en la sala de calentamiento
     private void StartClient()
     {
 
@@ -244,7 +245,7 @@ public class UIManager : MonoBehaviour
         customizeMenu.SetActive(false);
         inGameHUD.SetActive(true);
     }
-
+    //Con este metodo inicializamos el servidor, para poder conectar a los clientes
     private void StartServer()
     {
         NetworkManager.Singleton.StartServer();

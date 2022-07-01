@@ -14,7 +14,7 @@ public class GameManager : NetworkBehaviour
     [SerializeField] NetworkManager networkManager;
     [SerializeField] UIManager uiManager;
     [SerializeField] public Player clientPlayer;
-
+    //Variables para definir las propiedades de cada jugador y de la sala 
     [Header("Manager Properties")]
     [SerializeField] int skinID;
     [SerializeField] int maxPlayers;
@@ -23,12 +23,12 @@ public class GameManager : NetworkBehaviour
     [SerializeField] Text newPlayerName;
     [SerializeField] List<Player> playerList;
     public int connectedPlayers = 0;
-
+    //variables para cuando los jugadores ya estan jugando la ronda 
     [Header("NetworkVariables")]
     public NetworkVariable<float> time;
     public NetworkVariable<int> currentRound;
     public NetworkVariable<bool> matchStarted;
-
+   
     [Header("In Game")]
     [SerializeField] Text player1;
     [SerializeField] Text player2;
@@ -39,7 +39,7 @@ public class GameManager : NetworkBehaviour
     [SerializeField] Text listMenuPing;
     [SerializeField] Text listMenuKills;
     [SerializeField] Text listMenuDeaths;
-
+    //variables para la ui de la sala de calentamiento
     [Header("Warm-Up Texts")]
     [SerializeField] GameObject calentamientoText;
     [SerializeField] GameObject pressR;
@@ -88,7 +88,7 @@ public class GameManager : NetworkBehaviour
 
     #region Game Managing Methods
 
-
+    //mostramos la lista con todos los jugadores y sus bajas, vidas ping y nombre
     public void ShowGameList()
     {
         if (listMenuActive == false)
@@ -104,12 +104,12 @@ public class GameManager : NetworkBehaviour
         }
 
     }
-
+    //establecemos la skin del jugador 
     public void SetSkinID(int skin)
     {
         skinID = skin;
     }
-
+    // Devuelve la skin del jugador 
     public int CheckSkin()
     {
         return skinID;
@@ -120,7 +120,7 @@ public class GameManager : NetworkBehaviour
         newPlayerName = newName;
     }
 
-
+    //Este metodo comprueba el nombre del jugador y se asegura de ponerle uno si no lo ha hecho el jugador 
     public Text CheckName()
     {
         try
@@ -137,7 +137,7 @@ public class GameManager : NetworkBehaviour
         }
         return newPlayerName;
     }
-
+    //actimamos la interfaz de la ronda de calentamiento
     public void InitialText()
     {
         calentamientoText.SetActive(true);
@@ -149,7 +149,7 @@ public class GameManager : NetworkBehaviour
         pressR.SetActive(false);
         readyText.SetActive(true);
     }
-
+    //Una vez pulsamos el boton de que estamos listos en la sala de calentamiendo y están todos los jugadores  preparados se inicia la partida 
     public void SetReady()
     {
 
@@ -164,7 +164,7 @@ public class GameManager : NetworkBehaviour
             }
         }
     }
-
+    //comprueba que todos los jugadores están listos para jugar una vez han pulsado el botón
     private bool CheckReady()
     {
         CheckDisconnectedPlayersServerRpc();
@@ -185,7 +185,7 @@ public class GameManager : NetworkBehaviour
 
         return serverReady;
     }
-
+    //Controlamos el tiempo y cuando llega a 0 actualiza la ronda y el tiempo lo pone a 5 segundos más para paralizar jugadores y mostrar los resultados
     public void TimeManager()
     {
 
@@ -198,13 +198,14 @@ public class GameManager : NetworkBehaviour
             SetRoundServer();
 
             time.Value = 65f;
+            //Cuando acaba la ultima ronda señalamos que acaba el juego
             if (currentRound.Value == 4)
             {
                 MatchEndedClientRpc();
             }
         }
     }
-
+    //Congela los movimientos del jugador para cuando finaliza la ronda
     private void FreezePlayer()
     {
         if (clientPlayer.GetComponent<InputHandler>().enabled == false)
@@ -216,7 +217,7 @@ public class GameManager : NetworkBehaviour
             clientPlayer.GetComponent<InputHandler>().enabled = false;
         }
     }
-
+    //mostramos por pantalla cuando hay un asesinato a dos jugadores 
     public void ShowKillServer(string shootingPlayerS, string shotPlayerS)
     {
         player1.text = shootingPlayerS;
@@ -224,7 +225,7 @@ public class GameManager : NetworkBehaviour
 
         ShowKillClientRpc(shootingPlayerS, shotPlayerS);
     }
-
+    //escondemos los nombres del asesinato una vez pasado un tiempo 
     void HideKill()
     {
         killTexts.SetActive(false);
@@ -249,7 +250,7 @@ public class GameManager : NetworkBehaviour
             HostConnectionManager(NetworkManager.ServerClientId);
         }
     }
-
+    //informamos cuando se conecta un host a la partida 
     void HostConnectionManager(ulong clientID)
     {
         connectedPlayers++;
@@ -258,6 +259,7 @@ public class GameManager : NetworkBehaviour
         player.playerID = clientID;
         playerList.Add(player);
     }
+    //
     public void SetRoundServer()
     {
 
@@ -266,7 +268,7 @@ public class GameManager : NetworkBehaviour
             playerList[i].StartRoundPlayer();
         }
     }
-
+    //Este metodo organiza la lista de jugadores en función a sus bajas 
     void OrganisePlayerList()
     {
         for (int j = 1; j < playerList.Count; j++)
@@ -322,7 +324,7 @@ public class GameManager : NetworkBehaviour
 
 
     [ServerRpc(RequireOwnership = false)]
-
+    //Recorre la lista de jugadores y comprueba si hay alguna desconexión para indormar 
     private void CheckDisconnectedPlayersServerRpc()
     {
         List<int> disconnectedID = new List<int>();
@@ -358,7 +360,7 @@ public class GameManager : NetworkBehaviour
         }
 
     }
-
+    //Este metodo analiza los jugadores y sus estadísticas y los va actualizando 
     [ServerRpc(RequireOwnership = false)]
     void updatePlayerListServerRpc()
     {
@@ -376,7 +378,7 @@ public class GameManager : NetworkBehaviour
         }
 
     }
-
+    //Actualizamos el ping del jugador 
     [ServerRpc]
     void updatePingServerRpc()
     {
@@ -398,7 +400,7 @@ public class GameManager : NetworkBehaviour
     #endregion
 
     #region ClientRPC
-
+    //Cunado acaba la ronda se paraliza a los jugadores 5 segundos y se muestra la lista con los datos durante 4 
     [ClientRpc]
     private void finRondaClientRpc()
     {
@@ -407,7 +409,7 @@ public class GameManager : NetworkBehaviour
         Invoke("FreezePlayer", 5.0f);
         Invoke("ShowGameList", 4.0f);
     }
-
+    //
     [ClientRpc]
     private void MatchEndedClientRpc()
     {
@@ -428,7 +430,7 @@ public class GameManager : NetworkBehaviour
         readyText.SetActive(false);
         uiManager.UpdateLifeUI(0);
     }
-
+    //Cuando se mata a alguien se muestra a los implicados en el cliente y luego se oculta 
     [ClientRpc]
     void ShowKillClientRpc(string shootingPlayerC, string shotPlayerC)
     {
@@ -438,7 +440,7 @@ public class GameManager : NetworkBehaviour
         killTexts.SetActive(true);
         Invoke("HideKill", 7);
     }
-
+    //se resetean los valores del cliente 
     [ClientRpc]
     void ResetPlayerListClientRpc()
     {
@@ -447,7 +449,7 @@ public class GameManager : NetworkBehaviour
         listMenuKills.text = "";
         listMenuDeaths.text = "";
     }
-
+    //Actualizamos la lista con los datos de los jugadores al pulsar la e 
     [ClientRpc]
     void UpdatePlayerListClientRpc(string name, int ping, int kills, int deaths)
     {
@@ -461,13 +463,13 @@ public class GameManager : NetworkBehaviour
     #endregion
 
     #region Netcode Methods
-
+    //actualizamos el tiempo cuando cambia
     void OnTimeValueChanged(float previous, float current)
     {
         time.Value = current;
     }
 
-
+    //actualizamos la ronda cuando cambia
     void OnRoundValueChanged(int previous, int current)
     {
         currentRound.Value = current;
