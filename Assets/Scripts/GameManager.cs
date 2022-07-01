@@ -51,6 +51,7 @@ public class GameManager : NetworkBehaviour
 
     private void Awake()
     {
+     //Hace un callback para los clientes y otro para el servidor 
       networkManager.OnClientConnectedCallback += ConnectionManager;
       networkManager.OnServerStarted += ServerStarted;
 
@@ -58,6 +59,7 @@ public class GameManager : NetworkBehaviour
       currentRound = new NetworkVariable<int>(1);
     }
 
+    //En Update tenemos los métodos para que si es el servidor vaya cambiando el tiempo y maneje las rondas y que en los clientes pinten los resultados del tiempo y las rondas
     private void Update()
     {
         if (matchStarted.Value == true)
@@ -88,11 +90,13 @@ public class GameManager : NetworkBehaviour
 
     #region Game Managing Methods
 
-    //mostramos la lista con todos los jugadores y sus bajas, vidas ping y nombre
+    //Mostramos la lista con todos los jugadores y sus bajas, vidas ping y nombre
     public void ShowGameList()
     {
+        //Si la lista no está activada, se activa y viceversa
         if (listMenuActive == false)
         {
+            //Si se va a activar/mostrar, actualiza algunos valores en el servidor y en el cliente se muestran los datos actualizados
             listMenuActive = true;
             updatePlayerListServerRpc();
             listMenu.SetActive(true);
@@ -104,7 +108,7 @@ public class GameManager : NetworkBehaviour
         }
 
     }
-    //establecemos la skin del jugador 
+    //Establecemos la skin del jugador 
     public void SetSkinID(int skin)
     {
         skinID = skin;
@@ -115,12 +119,13 @@ public class GameManager : NetworkBehaviour
         return skinID;
     }
 
+    //Se establece el nombre del jugador
     public void SetName(Text newName)
     {
         newPlayerName = newName;
     }
 
-    //Este metodo comprueba el nombre del jugador y se asegura de ponerle uno si no lo ha hecho el jugador 
+    //Este metodo devuelve el nombre del jugador. Además comprueba el nombre del jugador está vacío y se asegura de ponerle uno si no lo ha hecho el jugador 
     public Text CheckName()
     {
         try
@@ -137,42 +142,49 @@ public class GameManager : NetworkBehaviour
         }
         return newPlayerName;
     }
-    //actimamos la interfaz de la ronda de calentamiento
+    //Actimamos la interfaz de la ronda de calentamiento
     public void InitialText()
     {
         calentamientoText.SetActive(true);
         pressR.SetActive(true);
     }
 
+    //Activamos la interfaz de estar listo
     public void SetReadyText()
     {
         pressR.SetActive(false);
         readyText.SetActive(true);
     }
+
     //Una vez pulsamos el boton de que estamos listos en la sala de calentamiendo y están todos los jugadores  preparados se inicia la partida 
     public void SetReady()
     {
-
+        //Mira si todos los jugadores están listos
         if (CheckReady() == true)
         {
-
+            //Actualiza/Elimina los textos en los clientes
             SetReadyTextClientRpc();
+            //Indica que la partida ha empezado
             matchStarted.Value = true;
+            //Y respawnea a cada jugador y resetea sus valores
             for (int i = 0; i < playerList.Count; i++)
             {
                 playerList[i].StartMatchPlayer();
             }
         }
     }
-    //comprueba que todos los jugadores están listos para jugar una vez han pulsado el botón
+    //Comprueba que todos los jugadores están listos para jugar una vez han pulsado el botón
     private bool CheckReady()
     {
+        //Primero comprobamos los jugadores que se han desconectado y los elimina de la playerList
         CheckDisconnectedPlayersServerRpc();
         int playersConnected = playerList.Count;
         bool serverReady = false;
+        //Si los jugadores conectados son en mínimo o más
         if (playersConnected >= minPlayers)
         {
             serverReady = true;
+            //Comprueba si hay algún jugador que no esté listo
             for (int i = 0; i < playersConnected; i++)
             {
                 if (playerList[i].isReady == false)
@@ -190,9 +202,10 @@ public class GameManager : NetworkBehaviour
     {
 
         time.Value -= Time.deltaTime;
-        
+        //Si el tiempo acaba
         if (time.Value == 0 || time.Value < 0)
         {
+            //Suma la ronda, y actualiza los clientes y el servidor
             currentRound.Value += 1;
             finRondaClientRpc();
             SetRoundServer();
@@ -205,7 +218,7 @@ public class GameManager : NetworkBehaviour
             }
         }
     }
-    //Congela los movimientos del jugador para cuando finaliza la ronda
+    //Congela los movimientos del jugador para cuando finaliza la ronda o termina el juego
     private void FreezePlayer()
     {
         if (clientPlayer.GetComponent<InputHandler>().enabled == false)
@@ -217,7 +230,7 @@ public class GameManager : NetworkBehaviour
             clientPlayer.GetComponent<InputHandler>().enabled = false;
         }
     }
-    //mostramos por pantalla cuando hay un asesinato a dos jugadores 
+    //Mostramos por pantalla cuando hay un asesinato a dos jugadores 
     public void ShowKillServer(string shootingPlayerS, string shotPlayerS)
     {
         player1.text = shootingPlayerS;
@@ -225,7 +238,8 @@ public class GameManager : NetworkBehaviour
 
         ShowKillClientRpc(shootingPlayerS, shotPlayerS);
     }
-    //escondemos los nombres del asesinato una vez pasado un tiempo 
+
+    //Escondemos los nombres del asesinato una vez pasado un tiempo 
     void HideKill()
     {
         killTexts.SetActive(false);
@@ -234,7 +248,7 @@ public class GameManager : NetworkBehaviour
     #endregion
 
     #region Network Methods
-
+    //Conecta el cliente y envía el ServerRPC
     void ConnectionManager(ulong clientID)
     {
         if (!IsServer)
@@ -242,7 +256,7 @@ public class GameManager : NetworkBehaviour
             ConnectionManagerServerRpc(clientID);
         }
     }
-
+    //Inicia el servidor, pero solo se ejecuta si es un Host
     void ServerStarted()
     {
         if (IsHost)
@@ -250,7 +264,8 @@ public class GameManager : NetworkBehaviour
             HostConnectionManager(NetworkManager.ServerClientId);
         }
     }
-    //informamos cuando se conecta un host a la partida 
+
+    //Informamos cuando se conecta un host a la partida: se añade a la lista de jugadores y suma los jugadores conectados
     void HostConnectionManager(ulong clientID)
     {
         connectedPlayers++;
@@ -259,7 +274,8 @@ public class GameManager : NetworkBehaviour
         player.playerID = clientID;
         playerList.Add(player);
     }
-    //
+
+    //Respawnea a todos los jugadores una vez empieza la ronda
     public void SetRoundServer()
     {
 
@@ -293,14 +309,17 @@ public class GameManager : NetworkBehaviour
 
     #region ServerRPC
 
-
+    //Actualiza en el servidor la conexión de un cliente
     [ServerRpc(RequireOwnership = false)]
     private void ConnectionManagerServerRpc(ulong clientID)
     {
+        //Se conecta mientras la partida no haya empezado
         if (matchStarted.Value == false)
         {
+            //Mira los jugadores desconectados y suma los jugadores conectados
             CheckDisconnectedPlayersServerRpc();
             connectedPlayers++;
+            //Si no llegamos al máximo de jugadores, añadimos el jugador del cliente a la lista y le asigna el ID
             if (connectedPlayers <= maxPlayers)
             {
                 NetworkObject newPlayer = NetworkManager.Singleton.ConnectedClients[clientID].PlayerObject;
@@ -310,6 +329,7 @@ public class GameManager : NetworkBehaviour
             }
             else
             {
+                //Sino, le desconecta
                 networkManager.DisconnectClient(clientID);
                 connectedPlayers--;
             }
@@ -324,13 +344,14 @@ public class GameManager : NetworkBehaviour
 
 
     [ServerRpc(RequireOwnership = false)]
-    //Recorre la lista de jugadores y comprueba si hay alguna desconexión para indormar 
+    //Recorre la lista de jugadores y comprueba si hay alguna desconexión
     private void CheckDisconnectedPlayersServerRpc()
     {
         List<int> disconnectedID = new List<int>();
         List<Player> disconnectedPlayers = new List<Player>();
         for (int i = 0; i < playerList.Count; i++)
         {
+            //Por cada jugador de la lista de jugadores, mira si están dentro de los clientes conectados
             try
             {
                 if (NetworkManager.Singleton.ConnectedClients[playerList[i].playerID] == null)
@@ -340,6 +361,7 @@ public class GameManager : NetworkBehaviour
             }
             catch (KeyNotFoundException exception)
             {
+                //Si no está en el diccionario, coge el jugador y lo mete en una lista
                 Debug.Log("ID no encontrado, jugador desconectado");
                 int disconnected = i;
                 Player disconnectedPlayer = playerList[i];
@@ -351,6 +373,7 @@ public class GameManager : NetworkBehaviour
 
         if (disconnectedID.Count != 0)
         {
+            //Con la lista de jugadores desconectados, los busca en la lista de players y los elimina
             Debug.Log("Comprobacion de disconnected");
             for (int j = 0; j < disconnectedPlayers.Count; j++)
             {
@@ -360,7 +383,8 @@ public class GameManager : NetworkBehaviour
         }
 
     }
-    //Este metodo analiza los jugadores y sus estadísticas y los va actualizando 
+
+    //Este metodo analiza los jugadores y sus estadísticas y los va actualizando y pasa la información al cliente para cuando enseña la lista de jugadores
     [ServerRpc(RequireOwnership = false)]
     void updatePlayerListServerRpc()
     {
@@ -378,6 +402,7 @@ public class GameManager : NetworkBehaviour
         }
 
     }
+
     //Actualizamos el ping del jugador 
     [ServerRpc]
     void updatePingServerRpc()
@@ -409,7 +434,7 @@ public class GameManager : NetworkBehaviour
         Invoke("FreezePlayer", 5.0f);
         Invoke("ShowGameList", 4.0f);
     }
-    //
+    //Enseña en cada cliente la UI/pantalla de fin de partida
     [ClientRpc]
     private void MatchEndedClientRpc()
     {
@@ -422,6 +447,7 @@ public class GameManager : NetworkBehaviour
 
     }
 
+    //Resetea y elimina los elementos de la UI necesarios para cuando empiece la partida en todos los clientes
     [ClientRpc]
     public void SetReadyTextClientRpc()
     {
@@ -430,7 +456,8 @@ public class GameManager : NetworkBehaviour
         readyText.SetActive(false);
         uiManager.UpdateLifeUI(0);
     }
-    //Cuando se mata a alguien se muestra a los implicados en el cliente y luego se oculta 
+
+    //Cuando se mata a alguien se muestra a todos los clientes el jugador que ha matado y el que ha muerto
     [ClientRpc]
     void ShowKillClientRpc(string shootingPlayerC, string shotPlayerC)
     {
@@ -440,7 +467,7 @@ public class GameManager : NetworkBehaviour
         killTexts.SetActive(true);
         Invoke("HideKill", 7);
     }
-    //se resetean los valores del cliente 
+    //Se resetean los valores de la lista en todos los clientes para luego poder mostrarlos correctamente
     [ClientRpc]
     void ResetPlayerListClientRpc()
     {
@@ -449,7 +476,8 @@ public class GameManager : NetworkBehaviour
         listMenuKills.text = "";
         listMenuDeaths.text = "";
     }
-    //Actualizamos la lista con los datos de los jugadores al pulsar la e 
+
+    //Actualizamos la lista con los datos de los jugadores al pulsar la E 
     [ClientRpc]
     void UpdatePlayerListClientRpc(string name, int ping, int kills, int deaths)
     {

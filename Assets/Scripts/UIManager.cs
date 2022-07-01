@@ -102,6 +102,7 @@ public class UIManager : MonoBehaviour
         customizeMenu.SetActive(true);
         readyButton.onClick.AddListener(StartHost);
     }
+
     //Metodo para que el cliente pueda elegir su personaje y nombre
     private void ClientMenu()
 
@@ -124,7 +125,7 @@ public class UIManager : MonoBehaviour
 
     private void SkinSelector(int color)
     {
-        //Aquí se pasaria por paramtro el color de la skin que se quiere para modificar luego el animator
+        //Aquí se pasaria por paramtro el ID del color de la skin que se quiere para modificar luego el animator
         if (color == 0)
         {
             gameManager.SetSkinID(0);
